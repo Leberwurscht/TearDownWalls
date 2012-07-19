@@ -1,5 +1,3 @@
-This is the Friendica4FB add-on.  It contains:
+This is the Firefox addon 'TearDownWalls'.
 
-* A program (lib/main.js).
-* A few tests.
-* Some meager documentation.
+It will enable Facebook users to communicate with Friendica users, even if they have no Friendica account.
