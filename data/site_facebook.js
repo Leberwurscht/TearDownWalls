@@ -197,14 +197,40 @@ self.port.on("transmit-entries", function(entries) {
         self.port.emit("request-comments", entry.id);
       });
     }
+
+    // set comment callbacks
+    inject_post.find(".TearDownWalls_comment_field").focus(function() {
+      var image = jQuery(this).parents(".TearDownWalls_post").find(".TearDownWalls_comment_image");
+      if (image.filter(":visible").length) return true;
+
+      image.show();
+      jQuery(this).val("");
     });
 
-    // set comment callback
-    inject_post.find(".TearDownWalls_comment_field").attr("id", "TearDownWalls_comment_field_"+entry.id);
-    inject_post.find(".TearDownWalls_comment_image").attr("id", "TearDownWalls_comment_image_"+entry.id);
-    inject_post.find(".TearDownWalls_comment_field").attr("onfocus", "var image = document.getElementById('TearDownWalls_comment_image_"+entry.id+"'); if (image.style.display != 'block') { image.style.display='block'; this.value=''; }");
-    inject_post.find(".TearDownWalls_comment_field").attr("onblur", "var image = document.getElementById('TearDownWalls_comment_image_"+entry.id+"'); if (this.value=='') { image.style.display='none'; this.value=this.getAttribute('title'); }");
-//    inject_post.find(".TearDownWalls_comment_field").attr("onkeydown", "alert(1)");
+    inject_post.find(".TearDownWalls_comment_field").blur(function() {
+      field = jQuery(this);
+      if (field.val()) return true;
+
+      field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").hide();
+      field.val(field.attr("title"));
+    });
+
+    inject_post.find(".TearDownWalls_comment_field").keydown(entry.id, function(event) {
+      if (event.keyCode != 13) return;
+
+      field = jQuery(this);
+      field.blur();
+
+      field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").hide();
+      var text = field.val();
+      field.val(field.attr("title"));
+
+      post = {"body": text, "in_reply_to":event.data};
+      self.port.emit("send-post", post);
+
+      // TODO: reload all comments when post is sent
+    });
+
 
     // inject the post
     current_post.after(inject_post);
