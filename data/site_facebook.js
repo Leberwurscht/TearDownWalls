@@ -11,6 +11,43 @@ jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(
   self.port.emit("post", text);
 });
 
+// if older posts are loaded, we also need to inject our posts.
+// TODO: must be put into a <script> tag which must be injected into the facebook page
+var script =
+  'if(!UIIntentionalStream.instance) UIIntentionalStream.instance={};\n'+ // for debugging
+  'if(!UIIntentionalStream.instance.loadOlderPosts) UIIntentionalStream.instance.loadOlderPosts=function(){};\n'+ // for debugging
+  '\n'+
+  'UIIntentionalStream.instance.loadOlderPosts = (function(){\n'+
+  '  var original_loadOlderPosts = UIIntentionalStream.instance.loadOlderPosts;\n'+
+
+  '  function new_loadOlderPosts() {\n'+
+  '    var return_value = original_loadOlderPosts(); /* execute original function */\n'+
+
+  '    window.postMessage("load-older-posts", "*");\n'+
+  '\n'+
+  '    return return_value;\n'+
+  '  }\n'+
+  '\n'+
+  '  return new_loadOlderPosts;\n'+
+  '})();\n';
+
+// inject the javascript
+// http://wiki.greasespot.net/Content_Script_Injection
+var script_tag = document.createElement('script');
+script_tag.setAttribute("type", "application/javascript");
+script_tag.textContent = script;
+document.body.appendChild(script_tag);
+document.body.removeChild(script_tag);
+
+document.defaultView.addEventListener("message", function(ev) {
+  if (ev.data!="load-older-posts") return;
+  console.log("LOAD OLDER POSTS"); // TODO
+}, false);
+
+
+
+//
+
 function upwards_cleanup(dom, start_selectors) {
   // first, mark all elements for deletion
   dom.find("*").addClass("_to_be_deleted");
