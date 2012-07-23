@@ -59,7 +59,7 @@ function get_post_template() {
   var avatar = "img.uiProfilePhoto:first";
   var author =  ".mainWrapper a:first";
   var date = ".mainWrapper .uiStreamFooter .timestamp";
-  var comments =  ".mainWrapper > form.commentable_item:not([class*=collapsed_comments]) .commentList:first";
+  var comments =  ".mainWrapper > form.commentable_item:not([class*=collapsed_comments]) .commentList";
   var comment_image =  ".uiUfiAddComment img.uiProfilePhoto";
   var comment_field =  ".commentArea textarea";
 
@@ -68,6 +68,14 @@ function get_post_template() {
 
   // extract the template from the prototype
   var post_template = extract_template(prototype, [avatar, author, date, comments, comment_image, comment_field]);
+
+  // copy "view all" - TODO: only works if the right post is in the news feed
+  var show_all = jQuery(stream+" "+comments+" .uiUfiViewAll").first().clone();
+  var show_all_input = show_all.find("input");
+  var show_all_text = show_all_input.val().replace(/[0-9]+ /, "");
+  show_all_input.val(show_all_text);
+  show_all_input.removeAttr("data-ft");
+  post_template.find(comments).append(show_all);
 
   // copy the inner text of the comment field and the hidden image
   var comment_text = prototype.find(comment_field).text();
@@ -81,6 +89,7 @@ function get_post_template() {
   post_template.find(author).addClass("TearDownWalls_author");
   post_template.find(date).addClass("TearDownWalls_date");
   post_template.find(".mainWrapper :first").after(jQuery('<div class="TearDownWalls_content">'));
+  show_all.addClass("TearDownWalls_show_all");
   post_template.find(comments).addClass("TearDownWalls_comments");
   post_template.find(comment_image).addClass("TearDownWalls_comment_image");
   post_template.find(comment_field).addClass("TearDownWalls_comment_field");
@@ -170,7 +179,20 @@ self.port.on("transmit-entries", function(entries) {
       author.html(comment.content);
 
       // append comment
-      comments.last().before(inject_comment);
+      comments.append(inject_comment);
+    });
+
+    // hide "show all" if necessary and add callback
+    if (entry.sub_items_complete) {
+      console.log();
+      inject_post.find(".TearDownWalls_show_all").hide();
+    }
+    else {
+      inject_post.find(".TearDownWalls_show_all").click(function(event) {
+        event.preventDefault()
+        self.port.emit("request-comments", entry.id);
+      });
+    }
     });
 
     // set comment callback
