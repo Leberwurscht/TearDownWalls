@@ -1,3 +1,7 @@
+var POST_RATIO = 2;
+
+jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").closest("li").before('<li style="float:left; border-left:1px solid #000; border: 3px solid #ddd;">&#126;f <input type="checkbox" checked="checked" id="crosspost-to-friendica" /></li>');
+
 jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(function(){
   if (!jQuery("#crosspost-to-friendica").attr("checked")) return;
 
@@ -216,4 +220,4 @@ if (jQuery("ul#home_stream").length) {
 }
 
 // for debugging
-jQuery("head").append(jQuery('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>'));
+jQuery("head").append(jQuery('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>'));
