@@ -42,9 +42,9 @@ document.body.removeChild(script_tag);
 document.defaultView.addEventListener("message", function(ev) {
   if (ev.data!="load-older-posts") return;
   console.log("LOAD OLDER POSTS"); // TODO
+
+  request_entries();
 }, false);
-
-
 
 //
 
@@ -165,8 +165,14 @@ self.port.on("transmit-entries", function(entries) {
   post_template = get_post_template();
   comment_template = get_comment_template();
 
+  // new items should be appended
+  native_items = jQuery("ul#home_stream > li.TearDownWalls_post:last").nextAll();
+  if (!native_items.length) {
+    native_items = jQuery("ul#home_stream > li");
+  }
+
   // go through the home stream
-  jQuery("ul#home_stream > li").each(function(index) {
+  native_items.each(function(index) {
     // skip some native entries
     if (index % POST_RATIO != 0) return true;
 
@@ -231,7 +237,9 @@ self.port.on("transmit-entries", function(entries) {
     else {
       inject_post.find(".TearDownWalls_show_all").click(function(event) {
         event.preventDefault()
-        self.port.emit("request-comments", entry.id);
+
+
+        self.port.emit("request-comments", {"feed":entry.feed, "id":entry.id});
       });
     }
 
@@ -268,19 +276,37 @@ self.port.on("transmit-entries", function(entries) {
       // TODO: reload all comments when post is sent
     });
 
+    inject_post.data("TearDownWalls_date", entry.date);
 
     // inject the post
     current_post.after(inject_post);
   });
 });
 
-// ul.home_stream
-if (jQuery("ul#home_stream").length) {
-  request = Math.ceil( jQuery("ul#home_stream > li").length / POST_RATIO );
+function request_entries(max_request) {
+  var last_injected_post = jQuery(".TearDownWalls_post:last");
+  if (last_injected_post.length) {
+    var start_date = last_injected_post.data("TearDownWalls_date");
+    start_date = parseInt(start_date);
+
+    var native_items = last_injected_post.nextAll().length;
+  }
+  else {
+    var start_date = null;
+
+    var native_items = jQuery("ul#home_stream > li").length;
+  }
+
+  request = Math.ceil( native_items / POST_RATIO );
+  if (max_request && request>max_request) request = max_request;
 
   // send message to main to get posts
-  self.port.emit("request-entries", request, 2);
+  if (request) {
+    self.port.emit("request-entries", request, 2, start_date);
+  }
 }
+
+request_entries();
 
 // for debugging
 jQuery("head").append(jQuery('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>'));
