@@ -5,10 +5,13 @@ jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").closes
 jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(function(){
   if (!jQuery("#crosspost-to-friendica").attr("checked")) return;
 
-  text = jQuery("#pagelet_composer form[action*=updatestatus] textarea").val();
+  var text = jQuery("#pagelet_composer form[action*=updatestatus] textarea").val();
+  var title = jQuery("#pagelet_composer form[action*=updatestatus] textarea").attr("title");
+  if (text==title) return;
 
   // send to main
-  self.port.emit("post", text);
+  entry = {"body": text};
+  self.port.emit("send-post", entry);
 });
 
 // if older posts are loaded, we also need to inject our posts.
