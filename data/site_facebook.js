@@ -149,18 +149,41 @@ function get_comment_template() {
 
   // find a prototype
   var prototype = jQuery(comment).first();
-console.log(prototype.get(0).nodeName);
 
   // extract the template from the prototype
   var comment_template = extract_template(prototype, [avatar, author]);
 
   // add TearDownWalls_* classes
+  comment_template.addClass("TearDownWalls_comment");
   comment_template.find(avatar).addClass("TearDownWalls_avatar");
   comment_template.find(author).addClass("TearDownWalls_author");
   comment_template.find(".commentContent").append(" ");
   comment_template.find(".commentContent").append(jQuery('<span class="TearDownWalls_content">'));
 
   return comment_template;
+}
+
+function inject_comments(parent_element, comment_template, comments) {
+  jQuery.each(comments, function(index, comment) {
+    var inject_comment = comment_template.clone();
+
+    // set avatar
+    avatar = inject_comment.find(".TearDownWalls_avatar");
+    avatar.attr("src", comment.avatar);
+    avatar.attr("alt", comment.author);
+    avatar.attr("title", comment.author);
+
+    // set author
+    var author = inject_comment.find(".TearDownWalls_author");
+    author.text(comment.author);
+
+    // set content
+    var author = inject_comment.find(".TearDownWalls_content");
+    author.html(comment.content);
+
+    // append comment
+    parent_element.append(inject_comment);
+  });
 }
 
 // callback for entries
@@ -210,27 +233,7 @@ self.port.on("transmit-entries", function(entries) {
 
     // set comments
     comments = inject_post.find(".TearDownWalls_comments");
-
-    jQuery.each(entry.sub_items, function(index, comment) {
-      var inject_comment = comment_template.clone();
-
-      // set avatar
-      avatar = inject_comment.find(".TearDownWalls_avatar");
-      avatar.attr("src", comment.avatar);
-      avatar.attr("alt", comment.author);
-      avatar.attr("title", comment.author);
-
-      // set author
-      var author = inject_comment.find(".TearDownWalls_author");
-      author.text(comment.author);
-
-      // set content
-      var author = inject_comment.find(".TearDownWalls_content");
-      author.html(comment.content);
-
-      // append comment
-      comments.append(inject_comment);
-    });
+    inject_comments(comments, comment_template, entry.sub_items);
 
     // hide "show all" if necessary and add callback
     if (entry.sub_items_complete) {
@@ -242,7 +245,7 @@ self.port.on("transmit-entries", function(entries) {
         event.preventDefault()
 
 
-        self.port.emit("request-comments", {"feed":entry.feed, "id":entry.id});
+        self.port.emit("request-comments", entry.feed, entry.id);
       });
     }
 
@@ -279,11 +282,29 @@ self.port.on("transmit-entries", function(entries) {
       // TODO: reload all comments when post is sent
     });
 
+    inject_post.data("TearDownWalls_feed", entry.feed);
+    inject_post.data("TearDownWalls_id", entry.id);
     inject_post.data("TearDownWalls_date", entry.date);
 
     // inject the post
     current_post.after(inject_post);
   });
+});
+
+self.port.on("transmit-comments", function(comments) {
+  // get comment section of the post
+  var post = jQuery(".TearDownWalls_post").filter(function() {
+    if ($(this).data("TearDownWalls_feed")!=comments["feed"]) return false;
+    if ($(this).data("TearDownWalls_id")!=comments["id"]) return false;
+    return true;
+  });
+  var comments_section = post.find(".TearDownWalls_comments");
+
+  // delete all comments
+  comments_section.find(".TearDownWalls_comment").remove();
+
+  // replace them
+  var parent_element = inject_comments(comments_section, get_comment_template(), comments["sub_items"]);
 });
 
 function request_entries(max_request) {
