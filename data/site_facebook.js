@@ -279,7 +279,10 @@ self.port.on("transmit-entries", function(entries) {
       post = {"body": text, "in_reply_to":event.data};
       self.port.emit("send-post", post);
 
-      // TODO: reload all comments when post is sent
+      // TODO: display name
+      var comments_section = field.parents(".TearDownWalls_post").find(".TearDownWalls_comments");
+      var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").attr("src");
+      inject_comments(comments_section, get_comment_template(), [{"avatar":avatar, "author":"", "content":text}]);
     });
 
     inject_post.data("TearDownWalls_feed", entry.feed);
