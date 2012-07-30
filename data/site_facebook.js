@@ -10,7 +10,7 @@ jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(
   if (text==title) return;
 
   // send to main
-  entry = {"body": text};
+  entry = {"content": text};
   self.port.emit("send-post", entry);
 });
 
@@ -275,7 +275,7 @@ self.port.on("transmit-entries", function(entries) {
       var text = field.val();
       field.val(field.attr("title"));
 
-      post = {"body": text, "in_reply_to":event.data};
+      post = {"content": text, "in_reply_to":event.data};
       self.port.emit("send-post", post);
 
       // TODO: display name
