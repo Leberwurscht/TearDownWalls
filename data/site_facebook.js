@@ -15,7 +15,6 @@ jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(
 });
 
 // if older posts are loaded, we also need to inject our posts.
-// TODO: must be put into a <script> tag which must be injected into the facebook page
 var script =
   'if(!UIIntentionalStream.instance) UIIntentionalStream.instance={};\n'+ // for debugging
   'if(!UIIntentionalStream.instance.loadOlderPosts) UIIntentionalStream.instance.loadOlderPosts=function(){};\n'+ // for debugging
@@ -282,7 +281,8 @@ self.port.on("transmit-entries", function(entries) {
       // TODO: display name
       var comments_section = field.parents(".TearDownWalls_post").find(".TearDownWalls_comments");
       var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").attr("src");
-      inject_comments(comments_section, get_comment_template(), [{"avatar":avatar, "author":"", "content":text}]);
+      var content = jQuery("<div>").text(text).html();
+      inject_comments(comments_section, get_comment_template(), [{"avatar":avatar, "author":"", "content":content}]);
     });
 
     inject_post.data("TearDownWalls_feed", entry.feed);
@@ -307,7 +307,7 @@ self.port.on("transmit-comments", function(comments) {
   comments_section.find(".TearDownWalls_comment").remove();
 
   // replace them
-  var parent_element = inject_comments(comments_section, get_comment_template(), comments["sub_items"]);
+  inject_comments(comments_section, get_comment_template(), comments["sub_items"]);
 });
 
 function request_entries(max_request) {
