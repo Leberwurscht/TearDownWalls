@@ -11,7 +11,7 @@ jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(
 
   // send to main
   entry = {"content": text};
-  self.port.emit("send-post", entry);
+  self.port.emit("send-item", entry);
 });
 
 // if older posts are loaded, we also need to inject our posts.
@@ -186,7 +186,7 @@ function inject_comments(parent_element, comment_template, comments) {
 }
 
 // callback for entries
-self.port.on("transmit-entries", function(entries) {
+self.port.on("transmit-posts", function(entries) {
   post_template = get_post_template();
   comment_template = get_comment_template();
 
@@ -276,7 +276,7 @@ self.port.on("transmit-entries", function(entries) {
       field.val(field.attr("title"));
 
       post = {"content": text, "in_reply_to":event.data};
-      self.port.emit("send-post", post);
+      self.port.emit("send-item", post);
 
       // TODO: display name
       var comments_section = field.parents(".TearDownWalls_post").find(".TearDownWalls_comments");
@@ -329,7 +329,7 @@ function request_entries(max_request) {
 
   // send message to main to get posts
   if (request) {
-    self.port.emit("request-entries", request, 2, start_date);
+    self.port.emit("request-posts", request, 2, start_date);
   }
 }
 
