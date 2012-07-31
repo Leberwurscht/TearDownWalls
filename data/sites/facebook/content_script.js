@@ -14,7 +14,7 @@ jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(
   self.port.emit("send-item", entry);
 });
 
-// if older posts are loaded, we also need to inject our posts.
+// if older posts are loaded, we also need to inject our posts. TODO: use DOM Mutation Observers
 var script =
   'if(!UIIntentionalStream.instance) UIIntentionalStream.instance={};\n'+ // for debugging
   'if(!UIIntentionalStream.instance.loadOlderPosts) UIIntentionalStream.instance.loadOlderPosts=function(){};\n'+ // for debugging
