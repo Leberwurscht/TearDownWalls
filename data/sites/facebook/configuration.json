@@ -1,0 +1,12 @@
+{
+  "page_mods":[{
+    "pattern": "*.facebook.com",
+    "when": "ready",
+    "files": ["../../lib/jquery.js", "content_script.js"]
+  }],
+  "page_workers":[{
+    "url": "https://www.facebook.com/?sk=nf",
+    "when": "end",
+    "files": ["../../lib/jquery.js", "extract_templates.js"]
+  }]
+}
