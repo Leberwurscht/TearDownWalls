@@ -14,7 +14,8 @@ Structure of TearDownWalls
         * request-data() re-requests the stored data. data is also made available to content scripts over self.options, but might be out of date (?)
         * log(message, level) can be used to log errors.
         * start-worker(config) can be used to start a page worker. Format of config object is as in configuration.json.
-    * The content script may react to the following messages:
-        * transmit-data(data)  in response to request-data; transmits the data that was set using set-data earlier.
+    * The content script may or should react to the following messages:
+        * start(is_tab). The content script should not do anything until it receives this message. is_tab indicates whether the script is run inside a tab (as opposed to a page worker) and can be used as a workaround until https://bugzilla.mozilla.org/show_bug.cgi?id=777632 is fixed in a stable release of the addon builder.
+        * transmit-data(data) in response to request-data; transmits the data that was set using set-data earlier.
         * transmit-posts(posts) in response to request-posts where posts is an array of toplevel posts. Each toplevel post has the properties feed, id, author, avatar, date, title, content, sub_items, sub_items_complete. sub_items is an array of comments. Each comment has the properties feed, id, author, avatar, date, title, content.
         * transmit-comments(post) in response to request-comments where post is an object with the properties feed, id, sub_items, subitems_complete. sub_items has the same format as in transmit-items.

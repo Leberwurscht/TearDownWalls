@@ -1,4 +1,9 @@
 var POST_RATIO = 2;
+var post_template;
+
+function get_comment_template() {
+  return post_template.find(".TearDownWalls_comment").first();
+}
 
 jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").closest("li").before('<li style="float:left; border-left:1px solid #000; border: 3px solid #ddd;">&#126;f <input type="checkbox" checked="checked" id="crosspost-to-friendica" /></li>');
 
@@ -48,120 +53,6 @@ document.defaultView.addEventListener("message", function(ev) {
   request_entries();
 }, false);
 
-//
-
-function upwards_cleanup(dom, start_selectors) {
-  // first, mark all elements for deletion
-  dom.find("*").addClass("_to_be_deleted");
-
-  // go through start selectors, and preserve the paths from the selected elements upwards
-  jQuery.each(start_selectors, function(index, start_selector) {
-    dom.find(start_selector).parentsUntil(dom).andSelf().removeClass("_to_be_deleted");
-  });
-
-  // delete all elements that are still marked to be deleted
-  dom.find("._to_be_deleted").remove();
-}
-
-function extract_template(prototype, start_selectors) {
-  var dom = prototype.clone();
-
-  // remove all elements that are not parents of elements we want to keep
-  upwards_cleanup(dom, start_selectors);
-
-  // remove text nodes
-  dom.find("*").contents().filter(function() {
-    return this.nodeType==3;
-  }).remove();
-
-  // remove all attributes but 'class'
-  var all_elements = dom.find("*").andSelf();
-  all_elements.each(function(index, element) {
-    var attributes = element.attributes.length;
-    while (attributes--) {
-      var attribute = element.attributes[attributes];
-      if (attribute.name.toLowerCase() != "class") element.removeAttributeNode(attribute);
-    }
-  });
-
-  // remove aid_* and live_* classes
-  all_elements.find("*").removeClass(function(index, classes) {
-    classes = " "+classes+" ";
-    var delete_classes = classes.match(/(\s)aid_(\S*)(\s)|(\s)live_(\S*)(\s)|(\s)hidden_elem(\s)/g)
-
-    if (delete_classes) return delete_classes.join();
-    return "";
-  });
-
-  return dom;
-}
-
-function get_post_template() {
-  // define selectors
-  var stream = "ul#home_stream > li";
-  var avatar = "img.uiProfilePhoto:first";
-  var author =  ".mainWrapper a:first";
-  var date = ".mainWrapper .uiStreamFooter .timestamp";
-  var comments =  ".mainWrapper > form.commentable_item:not([class*=collapsed_comments]) .commentList";
-  var comment_image =  ".uiUfiAddComment img.uiProfilePhoto";
-  var comment_field =  ".commentArea textarea";
-
-  // find a proper prototype (one with a comment section)
-  var prototype = jQuery(stream).find(comments).first().parents(stream).first();
-
-  // extract the template from the prototype
-  var post_template = extract_template(prototype, [avatar, author, date, comments, comment_image, comment_field]);
-
-  // copy "view all" - TODO: only works if the right post is in the news feed
-  var show_all = jQuery(stream+" "+comments+" .uiUfiViewAll").first().clone();
-  var show_all_input = show_all.find("input");
-  var show_all_text = show_all_input.val().replace(/[0-9]+ /, "");
-  show_all_input.val(show_all_text);
-  show_all_input.removeAttr("data-ft");
-  post_template.find(comments).append(show_all);
-
-  // copy the inner text of the comment field and the hidden image
-  var comment_text = prototype.find(comment_field).text();
-  post_template.find(comment_field).text(comment_text);
-  post_template.find(comment_field).attr("title", comment_text);
-  post_template.find(comment_image).replaceWith( prototype.find(comment_image).clone() );
-
-  // add TearDownWalls_* classes
-  post_template.addClass("TearDownWalls_post");
-  post_template.find(avatar).addClass("TearDownWalls_avatar");
-  post_template.find(author).addClass("TearDownWalls_author");
-  post_template.find(date).addClass("TearDownWalls_date");
-  post_template.find(".mainWrapper :first").after(jQuery('<div class="TearDownWalls_content">'));
-  show_all.addClass("TearDownWalls_show_all");
-  post_template.find(comments).addClass("TearDownWalls_comments");
-  post_template.find(comment_image).addClass("TearDownWalls_comment_image");
-  post_template.find(comment_field).addClass("TearDownWalls_comment_field");
-
-  return post_template;
-}
-
-function get_comment_template() {
-  // define selectors
-  var comment =  ".mainWrapper > form.commentable_item:not([class*=collapsed_comments]) .commentList .uiUfiComment:first";
-  var avatar = "img.uiProfilePhoto:first";
-  var author =  ".commentContent a:first";
-
-  // find a prototype
-  var prototype = jQuery(comment).first();
-
-  // extract the template from the prototype
-  var comment_template = extract_template(prototype, [avatar, author]);
-
-  // add TearDownWalls_* classes
-  comment_template.addClass("TearDownWalls_comment");
-  comment_template.find(avatar).addClass("TearDownWalls_avatar");
-  comment_template.find(author).addClass("TearDownWalls_author");
-  comment_template.find(".commentContent").append(" ");
-  comment_template.find(".commentContent").append(jQuery('<span class="TearDownWalls_content">'));
-
-  return comment_template;
-}
-
 function inject_comments(parent_element, comment_template, comments) {
   jQuery.each(comments, function(index, comment) {
     var inject_comment = comment_template.clone();
@@ -187,7 +78,6 @@ function inject_comments(parent_element, comment_template, comments) {
 
 // callback for entries
 self.port.on("transmit-posts", function(entries) {
-  post_template = get_post_template();
   comment_template = get_comment_template();
 
   // new items should be appended
@@ -210,15 +100,16 @@ self.port.on("transmit-posts", function(entries) {
     // we will inject this entry after the current post
     var current_post = jQuery(this);
     var inject_post = post_template.clone();
+    inject_post.find(".TearDownWalls_comment").remove();
 
     // set avatar
-    var avatar = inject_post.find(".TearDownWalls_avatar");
+    var avatar = inject_post.find(".TearDownWalls_avatar").first();
     avatar.attr("src", entry.avatar);
     avatar.attr("alt", entry.author);
     avatar.attr("title", entry.author);
 
     // set author
-    var author = inject_post.find(".TearDownWalls_author");
+    var author = inject_post.find(".TearDownWalls_author").first();
     author.text(entry.author);
 
     // // set date - not implemented yet
@@ -227,7 +118,7 @@ self.port.on("transmit-posts", function(entries) {
     // date.text(date_str);
 
     // set content
-    var author = inject_post.find(".TearDownWalls_content");
+    var author = inject_post.find(".TearDownWalls_content").first();
     author.html(entry.content);
 
     // set comments
@@ -333,7 +224,60 @@ function request_entries(max_request) {
   }
 }
 
-request_entries();
+self.port.on("start", function(is_tab) {
+  if (!is_tab) return; // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=777632
 
-// for debugging
-jQuery("head").append(jQuery('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>'));
+  if (!jQuery("#home_stream").length) return; // only if we find the home stream element
+
+  // fallback template
+  post_template = ''+
+  '<li class="TearDownWalls_post">'+
+  '  <hr />'+
+  '  <img class="TearDownWalls_avatar" style="float:left; width:50px;">'+
+  '  <div style="margin-left: 60px;">'+
+  '    <p><a class="TearDownWalls_author" style="font-weight:bold;"></a> <span class="TearDownWalls_date"></span><br /></p>'+
+  '    <p class="TearDownWalls_content"></p>'+
+  '    <span class="TearDownWalls_show_all"><hr /><a>(show all)</a></span>'+
+  '    <span class="TearDownWalls_comments">'+
+  '      <div class="TearDownWalls_comment" style="clear:both;">'+
+  '        <hr />'+
+  '        <img class="TearDownWalls_avatar" style="float:left; width:50px;">'+
+  '        <div style="margin-left: 60px;">'+
+  '          <a class="TearDownWalls_author" style="font-weight:bold;"></a> <span class="TearDownWalls_date"></span><br />'+
+  '          <div class="TearDownWalls_content"></div>'+
+  '        </div>'+
+  '      </div>'+
+  '    </span>'+
+  '    <hr style="clear:both;" />'+
+  '    <div>'+
+  '      <img class="TearDownWalls_comment_image" style="float:left;">'+
+  '      <textarea class="TearDownWalls_comment_field" title="enter a comment">enter a comment</textarea>'+
+  '    </div>'+
+  '  </div>'+
+  '</li>';
+
+
+  // spawn page worker if we have no recent template
+  var now = Math.round(new Date().getTime() / 1000);
+  if (!( self.options.last_extract > now - 3600*24*5 )) {
+    self.port.emit("start-worker", {
+      "url": document.URL,
+      "when": "end",
+      "files": ["../../lib/jquery.js", "extract_templates.js"]
+    });
+  }
+
+  // overwrite fallback template if we have a better one
+  if (self.options.post_template) {
+    post_template = self.options.post_template;
+  }
+
+  // convert to jquery object
+  post_template = jQuery(post_template);
+
+  // for debugging
+  jQuery("head").append(jQuery('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>'));
+
+  // request entries
+  request_entries();
+});
