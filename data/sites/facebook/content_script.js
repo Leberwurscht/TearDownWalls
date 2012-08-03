@@ -1,6 +1,35 @@
 var POST_RATIO = 2; // TODO: make configurable, perhaps probability based
 
-var post_template;
+// default settings; will be overwritten by extract_templates.js
+var lang = "en";
+var post_selector = "#home_stream > *";
+var post_template = ''+
+  '<li class="TearDownWalls_post">'+
+  '  <hr />'+
+  '  <img class="TearDownWalls_avatar" style="float:left; width:50px;">'+
+  '  <div style="margin-left: 60px;">'+
+  '    <p><a class="TearDownWalls_author" style="font-weight:bold;"></a><br /></p>'+
+  '    <p class="TearDownWalls_content"></p>'+
+  '    <span class="TearDownWalls_date" style="color:#aaa;"></span>'+
+  '    <span class="TearDownWalls_show_all"><hr /><a>(show all)</a></span>'+
+  '    <span>'+
+  '      <div class="TearDownWalls_comment" style="clear:both;">'+
+  '        <hr />'+
+  '        <img class="TearDownWalls_comment_avatar" style="float:left; width:50px;">'+
+  '        <div style="margin-left: 60px;">'+
+  '          <a class="TearDownWalls_comment_author" style="font-weight:bold;"></a><br />'+
+  '          <div class="TearDownWalls_comment_content"></div>'+
+  '          <span class="TearDownWalls_comment_date" style="color:#aaa;"></span>'+
+  '        </div>'+
+  '      </div>'+
+  '    </span>'+
+  '    <hr style="clear:both;" />'+
+  '    <div>'+
+  '      <img class="TearDownWalls_comment_image" style="float:left;">'+
+  '      <textarea class="TearDownWalls_comment_field" title="enter a comment">enter a comment</textarea>'+
+  '    </div>'+
+  '  </div>'+
+  '</li>';
 
 // TODO: crosspost checkbox. default should be configurable.
 jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").closest("li").before('<li style="float:left; border-left:1px solid #000; border: 3px solid #ddd;">&#126;f <input type="checkbox" checked="checked" id="crosspost-to-friendica" /></li>');
@@ -84,6 +113,12 @@ function add_comments(post, comments, remove_existing) {
     var author = inject_comment.find(".TearDownWalls_comment_content");
     author.html(comment.content);
 
+    // set date
+    var date = inject_comment.find(".TearDownWalls_comment_date");
+    var iso = new Date(comment.date).toISOString();
+    date.attr("title", iso);
+    date.timeago();
+
     // append comment
     current_comment.after(inject_comment);
 
@@ -124,10 +159,11 @@ self.port.on("transmit-posts", function(entries) {
     var author = inject_post.find(".TearDownWalls_author").first();
     author.text(entry.author);
 
-    // // set date - not implemented yet
-    // var date = inject_post.find(".TearDownWalls_date");
-    // var date_str = ... entry.date ...
-    // date.text(date_str);
+    // set date
+    var date = inject_post.find(".TearDownWalls_date");
+    var iso = new Date(entry.date).toISOString();
+    date.attr("title", iso);
+    date.timeago();
 
     // set content
     var author = inject_post.find(".TearDownWalls_content").first();
@@ -233,33 +269,6 @@ self.port.on("start", function(is_tab) {
 
   if (!jQuery("#home_stream").length) return; // only if we find the home stream element
 
-  // fallback template
-  post_template = ''+
-  '<li class="TearDownWalls_post">'+
-  '  <hr />'+
-  '  <img class="TearDownWalls_avatar" style="float:left; width:50px;">'+
-  '  <div style="margin-left: 60px;">'+
-  '    <p><a class="TearDownWalls_author" style="font-weight:bold;"></a> <span class="TearDownWalls_date"></span><br /></p>'+
-  '    <p class="TearDownWalls_content"></p>'+
-  '    <span class="TearDownWalls_show_all"><hr /><a>(show all)</a></span>'+
-  '    <span>'+
-  '      <div class="TearDownWalls_comment" style="clear:both;">'+
-  '        <hr />'+
-  '        <img class="TearDownWalls_comment_avatar" style="float:left; width:50px;">'+
-  '        <div style="margin-left: 60px;">'+
-  '          <a class="TearDownWalls_comment_author" style="font-weight:bold;"></a> <span class="TearDownWalls_comment_date"></span><br />'+
-  '          <div class="TearDownWalls_comment_content"></div>'+
-  '        </div>'+
-  '      </div>'+
-  '    </span>'+
-  '    <hr style="clear:both;" />'+
-  '    <div>'+
-  '      <img class="TearDownWalls_comment_image" style="float:left;">'+
-  '      <textarea class="TearDownWalls_comment_field" title="enter a comment">enter a comment</textarea>'+
-  '    </div>'+
-  '  </div>'+
-  '</li>';
-
   // spawn page worker if we have no recent template
   var now = Math.round(new Date().getTime() / 1000);
   if (!( self.options.last_extract > now - 3600*24*5 )) {
@@ -273,6 +282,11 @@ self.port.on("start", function(is_tab) {
   // overwrite fallback template if we have a better one
   if (self.options.post_template) {
     post_template = self.options.post_template;
+  }
+
+  // set timeago locale if we have one
+  if (self.options.timeago_locale) {
+    jQuery.timeago.settings.strings = self.options.timeago_locale;
   }
 
   // convert to jquery object

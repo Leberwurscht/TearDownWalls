@@ -32,10 +32,10 @@ function extract_template(prototype, start_selectors) {
     }
   });
 
-  // remove aid_* and live_* classes
+  // remove aid_* and live_* and other unwanted classes
   all_elements.find("*").removeClass(function(index, classes) {
     classes = " "+classes+" ";
-    var delete_classes = classes.match(/(\s)aid_(\S*)(\s)|(\s)comment_(\S*)(\s)|(\s)live_(\S*)(\s)|(\s)hidden_elem(\s)/g)
+    var delete_classes = classes.match(/(\s)aid_(\S*)(\s)|(\s)livetimestamp(\s)|(\s)comment_(\S*)(\s)|(\s)live_(\S*)(\s)|(\s)hidden_elem(\s)/g);
 
     if (delete_classes) return delete_classes.join();
     return "";
@@ -93,19 +93,22 @@ function get_comment_template() {
   var comment =  ".mainWrapper > form.commentable_item:not([class*=collapsed_comments]) .commentList .uiUfiComment:first";
   var avatar = "img.uiProfilePhoto:first";
   var author =  ".commentContent a:first";
+  var date = ".timestamp";
+  var content = ".commentBody";
 
   // find a prototype
   var prototype = jQuery(comment).first();
 
   // extract the template from the prototype
-  var comment_template = extract_template(prototype, [avatar, author]);
+  var comment_template = extract_template(prototype, [avatar, author, date, content]);
 
   // add TearDownWalls_comment* classes
   comment_template.addClass("TearDownWalls_comment");
   comment_template.find(avatar).addClass("TearDownWalls_comment_avatar");
   comment_template.find(author).addClass("TearDownWalls_comment_author");
-  comment_template.find(".commentContent").append(" ");
-  comment_template.find(".commentContent").append(jQuery('<span class="TearDownWalls_comment_content">'));
+  comment_template.find(date).addClass("TearDownWalls_comment_date");
+  comment_template.find(author).after(" ");
+  comment_template.find(content).addClass("TearDownWalls_comment_content");
 
   return comment_template;
 }
@@ -115,11 +118,28 @@ self.port.on("start", function() {
   var now = Math.round(new Date().getTime() / 1000);
   if ( self.options.last_extract > now - 3600*24*5 ) return;
 
+  // extract templates
   var post_template = get_post_template();
   var comment_template = get_comment_template();
 
   post_template.find(".TearDownWalls_comments").append(comment_template);
   var html = post_template.wrap("<div>").parent().html();
+
+  // extract language, needed for localization of jquery.timeago.js
+  var lang = jQuery("html").attr("lang").toLowerCase();
+
+  // get localization of jquery.timeago.js - this is an ugly workaround for the fact that we cannot include files from content scripts.
+  // Start a page worker with the right localization and a script that saves the localization using set-data.
+  self.port.emit("start-worker", {
+      "url": null,
+      "when": "end",
+      "files": [
+        "../../lib/jquery.js",
+        "../../lib/jquery.timeago.js",
+        "../../lib/jquery.timeago.locales/jquery.timeago."+lang+".js",
+        "../../get_timeago_locale.js"
+      ]
+  });
 
   self.port.emit("set-data", {
     "post_template": html,
