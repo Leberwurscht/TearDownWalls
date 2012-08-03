@@ -110,15 +110,19 @@ function get_comment_template() {
   return comment_template;
 }
 
-function extract_templates() {
-  // only try if last successfully extracted template is older than five days
+self.port.on("start", function() {
+  // do nothing if we already have a recent template
   var now = Math.round(new Date().getTime() / 1000);
-  if (self.options.last_extract > now - 3600*24*5) return;
+  if ( self.options.last_extract > now - 3600*24*5 ) return;
 
-  // extract comment template
-}
+  var post_template = get_post_template();
+  var comment_template = get_comment_template();
 
-// only execute every 5 days
-var now = Math.round(new Date().getTime() / 1000);
-if (self.options.last_extract > now - 3600*24*5) {
-}
+  post_template.find(".TearDownWalls_comments").append(comment_template);
+  var html = post_template.wrap("<div>").html();
+
+  self.port.emit("set-data", {
+    "post_template": html,
+    "last_extract": now
+  });
+});
