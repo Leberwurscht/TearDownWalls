@@ -125,4 +125,6 @@ self.port.on("start", function() {
     "post_template": html,
     "last_extract": now
   });
+
+  self.port.emit("terminate");
 });
