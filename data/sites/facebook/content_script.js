@@ -1,12 +1,11 @@
-var POST_RATIO = 2;
+var POST_RATIO = 2; // TODO: make configurable, perhaps probability based
+
 var post_template;
 
-function get_comment_template() {
-  return post_template.find(".TearDownWalls_comment").first();
-}
-
+// TODO: crosspost checkbox. default should be configurable.
 jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").closest("li").before('<li style="float:left; border-left:1px solid #000; border: 3px solid #ddd;">&#126;f <input type="checkbox" checked="checked" id="crosspost-to-friendica" /></li>');
 
+// TODO: submit callback
 jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(function(){
   if (!jQuery("#crosspost-to-friendica").attr("checked")) return;
 
@@ -47,15 +46,29 @@ document.body.appendChild(script_tag);
 document.body.removeChild(script_tag);
 
 document.defaultView.addEventListener("message", function(ev) {
-  if (ev.data!="load-older-posts") return;
-  console.log("LOAD OLDER POSTS"); // TODO
-
-  request_entries();
+  if (ev.data=="load-older-posts") {
+    request_entries();
+  }
 }, false);
 
-function inject_comments(parent_element, comment_template, comments) {
+function add_comments(post, comments, remove_existing) {
+  // get existing comments
+  var existing_comments = post.find(".TearDownWalls_comment");
+
+  // get the first comment, which is empty and invisible and serves as template
+  var comment_template = existing_comments.first();
+  comment_template.hide();
+
+  // remove all other existing comments
+  if (remove_existing) {
+    existing_comments.slice(1).remove();
+  }
+
+  // add the new comments, each after the previous
+  var current_comment = post.find(".TearDownWalls_comment").last();
+
   jQuery.each(comments, function(index, comment) {
-    var inject_comment = comment_template.clone();
+    var inject_comment = comment_template.clone().show();
 
     // set avatar
     avatar = inject_comment.find(".TearDownWalls_avatar");
@@ -72,14 +85,14 @@ function inject_comments(parent_element, comment_template, comments) {
     author.html(comment.content);
 
     // append comment
-    parent_element.append(inject_comment);
+    current_comment.after(inject_comment);
+
+    current_comment = inject_comment;
   });
 }
 
 // callback for entries
 self.port.on("transmit-posts", function(entries) {
-  comment_template = get_comment_template();
-
   // new items should be appended
   native_items = jQuery("ul#home_stream > li.TearDownWalls_post:last").nextAll();
   if (!native_items.length) {
@@ -100,7 +113,6 @@ self.port.on("transmit-posts", function(entries) {
     // we will inject this entry after the current post
     var current_post = jQuery(this);
     var inject_post = post_template.clone();
-    inject_post.find(".TearDownWalls_comment").remove();
 
     // set avatar
     var avatar = inject_post.find(".TearDownWalls_avatar").first();
@@ -122,18 +134,15 @@ self.port.on("transmit-posts", function(entries) {
     author.html(entry.content);
 
     // set comments
-    comments = inject_post.find(".TearDownWalls_comments");
-    inject_comments(comments, comment_template, entry.sub_items);
+    add_comments(inject_post, entry.sub_items, true);
 
     // hide "show all" if necessary and add callback
     if (entry.sub_items_complete) {
-      console.log();
       inject_post.find(".TearDownWalls_show_all").hide();
     }
     else {
       inject_post.find(".TearDownWalls_show_all").click(function(event) {
         event.preventDefault()
-
 
         self.port.emit("request-comments", entry.feed, entry.id);
       });
@@ -170,10 +179,9 @@ self.port.on("transmit-posts", function(entries) {
       self.port.emit("send-item", post);
 
       // TODO: display name
-      var comments_section = field.parents(".TearDownWalls_post").find(".TearDownWalls_comments");
       var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").attr("src");
       var content = jQuery("<div>").text(text).html();
-      inject_comments(comments_section, get_comment_template(), [{"avatar":avatar, "author":"", "content":content}]);
+      add_comments(field.parents(".TearDownWalls_post"), [{"avatar":avatar, "author":"", "content":content}]);
     });
 
     inject_post.data("TearDownWalls_feed", entry.feed);
@@ -192,13 +200,9 @@ self.port.on("transmit-comments", function(comments) {
     if ($(this).data("TearDownWalls_id")!=comments["id"]) return false;
     return true;
   });
-  var comments_section = post.find(".TearDownWalls_comments");
-
-  // delete all comments
-  comments_section.find(".TearDownWalls_comment").remove();
 
   // replace them
-  inject_comments(comments_section, get_comment_template(), comments["sub_items"]);
+  add_comments(post, comments["sub_items"], true);
 });
 
 function request_entries(max_request) {
@@ -238,7 +242,7 @@ self.port.on("start", function(is_tab) {
   '    <p><a class="TearDownWalls_author" style="font-weight:bold;"></a> <span class="TearDownWalls_date"></span><br /></p>'+
   '    <p class="TearDownWalls_content"></p>'+
   '    <span class="TearDownWalls_show_all"><hr /><a>(show all)</a></span>'+
-  '    <span class="TearDownWalls_comments">'+
+  '    <span>'+
   '      <div class="TearDownWalls_comment" style="clear:both;">'+
   '        <hr />'+
   '        <img class="TearDownWalls_avatar" style="float:left; width:50px;">'+
@@ -255,7 +259,6 @@ self.port.on("start", function(is_tab) {
   '    </div>'+
   '  </div>'+
   '</li>';
-
 
   // spawn page worker if we have no recent template
   var now = Math.round(new Date().getTime() / 1000);
