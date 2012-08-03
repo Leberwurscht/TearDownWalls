@@ -100,12 +100,12 @@ function get_comment_template() {
   // extract the template from the prototype
   var comment_template = extract_template(prototype, [avatar, author]);
 
-  // add TearDownWalls_* classes
+  // add TearDownWalls_comment* classes
   comment_template.addClass("TearDownWalls_comment");
-  comment_template.find(avatar).addClass("TearDownWalls_avatar");
-  comment_template.find(author).addClass("TearDownWalls_author");
+  comment_template.find(avatar).addClass("TearDownWalls_comment_avatar");
+  comment_template.find(author).addClass("TearDownWalls_comment_author");
   comment_template.find(".commentContent").append(" ");
-  comment_template.find(".commentContent").append(jQuery('<span class="TearDownWalls_content">'));
+  comment_template.find(".commentContent").append(jQuery('<span class="TearDownWalls_comment_content">'));
 
   return comment_template;
 }

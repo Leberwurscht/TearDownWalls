@@ -71,17 +71,17 @@ function add_comments(post, comments, remove_existing) {
     var inject_comment = comment_template.clone().show();
 
     // set avatar
-    avatar = inject_comment.find(".TearDownWalls_avatar");
+    avatar = inject_comment.find(".TearDownWalls_comment_avatar");
     avatar.attr("src", comment.avatar);
     avatar.attr("alt", comment.author);
     avatar.attr("title", comment.author);
 
     // set author
-    var author = inject_comment.find(".TearDownWalls_author");
+    var author = inject_comment.find(".TearDownWalls_comment_author");
     author.text(comment.author);
 
     // set content
-    var author = inject_comment.find(".TearDownWalls_content");
+    var author = inject_comment.find(".TearDownWalls_comment_content");
     author.html(comment.content);
 
     // append comment
@@ -245,10 +245,10 @@ self.port.on("start", function(is_tab) {
   '    <span>'+
   '      <div class="TearDownWalls_comment" style="clear:both;">'+
   '        <hr />'+
-  '        <img class="TearDownWalls_avatar" style="float:left; width:50px;">'+
+  '        <img class="TearDownWalls_comment_avatar" style="float:left; width:50px;">'+
   '        <div style="margin-left: 60px;">'+
-  '          <a class="TearDownWalls_author" style="font-weight:bold;"></a> <span class="TearDownWalls_date"></span><br />'+
-  '          <div class="TearDownWalls_content"></div>'+
+  '          <a class="TearDownWalls_comment_author" style="font-weight:bold;"></a> <span class="TearDownWalls_comment_date"></span><br />'+
+  '          <div class="TearDownWalls_comment_content"></div>'+
   '        </div>'+
   '      </div>'+
   '    </span>'+
