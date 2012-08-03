@@ -35,7 +35,7 @@ function extract_template(prototype, start_selectors) {
   // remove aid_* and live_* classes
   all_elements.find("*").removeClass(function(index, classes) {
     classes = " "+classes+" ";
-    var delete_classes = classes.match(/(\s)aid_(\S*)(\s)|(\s)live_(\S*)(\s)|(\s)hidden_elem(\s)/g)
+    var delete_classes = classes.match(/(\s)aid_(\S*)(\s)|(\s)comment_(\S*)(\s)|(\s)live_(\S*)(\s)|(\s)hidden_elem(\s)/g)
 
     if (delete_classes) return delete_classes.join();
     return "";
@@ -119,7 +119,7 @@ self.port.on("start", function() {
   var comment_template = get_comment_template();
 
   post_template.find(".TearDownWalls_comments").append(comment_template);
-  var html = post_template.wrap("<div>").html();
+  var html = post_template.wrap("<div>").parent().html();
 
   self.port.emit("set-data", {
     "post_template": html,
