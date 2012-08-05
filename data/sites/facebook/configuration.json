@@ -2,7 +2,7 @@
   "page_mods":[{
     "pattern": "*.facebook.com",
     "when": "ready",
-    "files": ["../../lib/jquery.js", "../../lib/jquery.timeago.js", "content_script.js"]
+    "files": ["../../lib/jquery.js", "../../lib/jquery.timeago.js", "../../lib/jquery.autosize.js", "content_script.js"]
   }],
   "page_workers":[{
     "url": "https://www.facebook.com/?sk=nf",

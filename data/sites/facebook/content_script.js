@@ -26,7 +26,7 @@ var post_template = ''+
   '    <hr style="clear:both;" />'+
   '    <div>'+
   '      <img class="TearDownWalls_comment_image" style="float:left;">'+
-  '      <textarea class="TearDownWalls_comment_field" title="enter a comment">enter a comment</textarea>'+
+  '      <textarea class="TearDownWalls_comment_field" title="enter a comment" style="width:100%; height:1.5em; margin-bottom:.5em;">enter a comment</textarea>'+
   '    </div>'+
   '  </div>'+
   '</li>';
@@ -183,6 +183,8 @@ self.port.on("transmit-posts", function(entries) {
         self.port.emit("request-comments", entry.feed, entry.id);
       });
     }
+
+    inject_post.find(".TearDownWalls_comment_field").autosize();
 
     // set comment callbacks
     inject_post.find(".TearDownWalls_comment_field").focus(function() {
