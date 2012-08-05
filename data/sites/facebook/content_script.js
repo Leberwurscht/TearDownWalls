@@ -217,7 +217,8 @@ self.port.on("transmit-posts", function(entries) {
       // TODO: display name
       var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").attr("src");
       var content = jQuery("<div>").text(text).html();
-      add_comments(field.parents(".TearDownWalls_post"), [{"avatar":avatar, "author":"", "content":content}]);
+      var now = Math.round(new Date().getTime());
+      add_comments(field.parents(".TearDownWalls_post"), [{"avatar":avatar, "author":"", "content":content, "date":now}]);
     });
 
     inject_post.data("TearDownWalls_feed", entry.feed);
