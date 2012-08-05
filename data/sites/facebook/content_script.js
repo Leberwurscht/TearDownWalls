@@ -1,4 +1,4 @@
-var POST_RATIO = 2; // TODO: make configurable, perhaps probability based
+var INJECT_PROBABILITY = .5; // TODO: make configurable
 
 // default settings; will be overwritten by extract_templates.js
 var lang = "en";
@@ -30,6 +30,9 @@ var post_template = ''+
   '    </div>'+
   '  </div>'+
   '</li>';
+var comment_field_selected_diff = {
+  ".mainWrapper form > div > ul.uiList":["+child_is_active"]
+}
 
 // TODO: crosspost checkbox. default should be configurable.
 jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").closest("li").before('<li style="float:left; border-left:1px solid #000; border: 3px solid #ddd;">&#126;f <input type="checkbox" checked="checked" id="crosspost-to-friendica" /></li>');
@@ -80,6 +83,24 @@ document.defaultView.addEventListener("message", function(ev) {
   }
 }, false);
 
+function apply_class_diff(dom, diff, reverse) {
+  for (selector in diff) { if (!diff.hasOwnProperty(selector)) continue;
+    var changes = diff[selector];
+    for (var i=0; i<changes.length; i++) {
+      var change = changes[i];
+      var direction = change.substr(0,1);
+      var css_class = change.substr(1);
+
+      if ((direction=="+" && !reverse) || (direction=="-" && reverse)) {
+        dom.find(selector).addClass(css_class);
+      }
+      else {
+        dom.find(selector).removeClass(css_class);
+      }
+    }
+  }
+}
+
 function add_comments(post, comments, remove_existing) {
   // get existing comments
   var existing_comments = post.find(".TearDownWalls_comment");
@@ -126,110 +147,138 @@ function add_comments(post, comments, remove_existing) {
   });
 }
 
-// callback for entries
-self.port.on("transmit-posts", function(entries) {
-  // new items should be appended
-  native_items = jQuery("ul#home_stream > li.TearDownWalls_post:last").nextAll();
-  if (!native_items.length) {
-    native_items = jQuery("ul#home_stream > li");
+function inject_posts(posts, remove_existing) {
+  // remove existing posts if necessary
+  if (remove_existing) {
+    jQuery(".TearDownWalls_post").remove();
   }
 
-  // go through the home stream
-  native_items.each(function(index) {
-    // skip some native entries
-    if (index % POST_RATIO != 0) return true;
+  // new posts should be inserted after last injected post
+  native_posts = jQuery(".TearDownWalls_post").last().nextAll();
+  if (!native_posts.length) {
+    native_posts = jQuery(post_selector);
+  }
 
-    // get some feed entry to inject into the site
-    var post_nr = Math.round(index/POST_RATIO);
+  // go through native posts and inject our posts with a certain probability after them
+  var post_index = 0;
+  native_posts.each(function(index) {
+    // whether to inject a post
+    if (Math.random() >= INJECT_PROBABILITY) return true;
 
-    var entry;
-    if (!( entry = entries[post_nr] )) return false;
+    // get the post that should be injected, incrementing post_index
+    var post = posts[post_index];
+    post_index++;
 
-    // we will inject this entry after the current post
-    var current_post = jQuery(this);
-    var inject_post = post_template.clone();
+    // terminate if no more posts are available
+    if (!post) return false;
+
+    // construct the post that should be injected
+    var injected_post = post_template.clone();
 
     // set avatar
-    var avatar = inject_post.find(".TearDownWalls_avatar").first();
-    avatar.attr("src", entry.avatar);
-    avatar.attr("alt", entry.author);
-    avatar.attr("title", entry.author);
+    var avatar = injected_post.find(".TearDownWalls_avatar");
+    avatar.attr("src", post.avatar);
+    avatar.attr("alt", post.author);
+    avatar.attr("title", post.author);
 
     // set author
-    var author = inject_post.find(".TearDownWalls_author").first();
-    author.text(entry.author);
+    var author = injected_post.find(".TearDownWalls_author");
+    author.text(post.author);
 
     // set date
-    var date = inject_post.find(".TearDownWalls_date");
-    var iso = new Date(entry.date).toISOString();
+    var date = injected_post.find(".TearDownWalls_date");
+    var iso = new Date(post.date).toISOString();
     date.attr("title", iso);
     date.timeago();
 
     // set content
-    var author = inject_post.find(".TearDownWalls_content").first();
-    author.html(entry.content);
+    var author = injected_post.find(".TearDownWalls_content");
+    author.html(post.content);
 
-    // set comments
-    add_comments(inject_post, entry.sub_items, true);
-
-    // hide "show all" if necessary and add callback
-    if (entry.sub_items_complete) {
-      inject_post.find(".TearDownWalls_show_all").hide();
-    }
-    else {
-      inject_post.find(".TearDownWalls_show_all").click(function(event) {
-        event.preventDefault()
-
-        self.port.emit("request-comments", entry.feed, entry.id);
-      });
+    // check if we can hide the show all button
+    if (post.sub_items_complete) {
+      injected_post.find(".TearDownWalls_show_all").hide();
     }
 
-    inject_post.find(".TearDownWalls_comment_field").autosize();
+    // add comments
+    add_comments(injected_post, post.sub_items, true);
 
-    // set comment callbacks
-    inject_post.find(".TearDownWalls_comment_field").focus(function() {
-      var image = jQuery(this).parents(".TearDownWalls_post").find(".TearDownWalls_comment_image");
-      if (image.filter(":visible").length) return true;
+    // add callback for show all
+    injected_post.find(".TearDownWalls_show_all").click(function(event) {
+      event.preventDefault()
 
-      image.show();
-      jQuery(this).val("");
+      self.port.emit("request-comments", post.feed, post.id);
     });
 
-    inject_post.find(".TearDownWalls_comment_field").blur(function() {
-      field = jQuery(this);
-      if (field.val()) return true;
+    // jquery.autosize.js for growing textareas
+    injected_post.find(".TearDownWalls_comment_field").autosize();
 
-      field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").hide();
-      field.val(field.attr("title"));
+    // comment field focus callback
+    injected_post.find(".TearDownWalls_comment_field").focus(function() {
+      var field = jQuery(this);
+
+      // remove predefined text if necessary
+      if (field.val()==field.attr("title")) {
+        field.val("");
+      }
+
+      // adapt classes
+      apply_class_diff(injected_post, comment_field_selected_diff);
     });
 
-    inject_post.find(".TearDownWalls_comment_field").keydown(entry.id, function(event) {
-      if (event.keyCode != 13) return;
+    // comment field blur callback
+    injected_post.find(".TearDownWalls_comment_field").blur(function() {
+      var field = jQuery(this);
+
+      // add predefined text and adapt classes if necessary
+      if (!field.val()) {
+        field.val(field.attr("title"));
+        apply_class_diff(injected_post, comment_field_selected_diff, true);
+      }
+    });
+
+    // keydown callback to submit posts
+    injected_post.find(".TearDownWalls_comment_field").keydown({"feed":post.feed, "post_id":post.id}, function(ev) {
+      if (ev.keyCode!=13 || ev.shiftKey) return; // only react to return without shift pressed
 
       field = jQuery(this);
+      var text = field.val();
+
+      // restore blank comment field
+      field.val("");
       field.blur();
 
-      field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").hide();
-      var text = field.val();
-      field.val(field.attr("title"));
+      // send comment
+      comment = {"content": text, "feed":ev.data.feed, "in_reply_to":ev.data.post_id};
+      self.port.emit("send-item", comment);
 
-      post = {"content": text, "in_reply_to":event.data};
-      self.port.emit("send-item", post);
-
-      // TODO: display name
+      // display comment
+      var author = ""; // TODO
       var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").attr("src");
-      var content = jQuery("<div>").text(text).html();
-      var now = Math.round(new Date().getTime());
-      add_comments(field.parents(".TearDownWalls_post"), [{"avatar":avatar, "author":"", "content":content, "date":now}]);
+      var now = new Date().getTime();
+      var content = jQuery("<div>").text(text).html(); // escape html characters
+
+      add_comments(field.parents(".TearDownWalls_post"), [{
+        "author":"",
+        "avatar":avatar,
+        "date":now,
+        "content": content.replace("\n","<br />")
+      }]);
     });
 
-    inject_post.data("TearDownWalls_feed", entry.feed);
-    inject_post.data("TearDownWalls_id", entry.id);
-    inject_post.data("TearDownWalls_date", entry.date);
+    // append important data to the post
+    injected_post.data("TearDownWalls_feed", post.feed);
+    injected_post.data("TearDownWalls_id", post.id);
+    injected_post.data("TearDownWalls_date", post.date);
 
-    // inject the post
-    current_post.after(inject_post);
+    // inject the post after the current native post
+    jQuery(this).after(injected_post);
   });
+}
+
+// callback for entries
+self.port.on("transmit-posts", function(posts) {
+  inject_posts(posts);
 });
 
 self.port.on("transmit-comments", function(comments) {
@@ -258,7 +307,7 @@ function request_entries(max_request) {
     var native_items = jQuery("ul#home_stream > li").length;
   }
 
-  request = Math.ceil( native_items / POST_RATIO );
+  request = native_items; // TODO: adapt to INJECT_PROBABILITY!
   if (max_request && request>max_request) request = max_request;
 
   // send message to main to get posts
