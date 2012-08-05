@@ -9,7 +9,7 @@ Structure of TearDownWalls
     * The content scripts may send the following messages:
         * request-posts(posts, comments, start_date) requests the 'posts' newest toplevel posts, each with the 'comments' most recent comments, that are newer than start_date.
         * request-comments(feed, id, max_comments) requests the 'max_comments' newest comments for a post specified by feed and id
-        * send-item(item) where item has properties title, content, in_reply_to: sent when a post was composed within the walled garden which should also be sent to the federated social web
+        * send-item(item) where item has properties title, content, and optionally both in_reply_to and feed: sent when a post was composed within the walled garden which should also be sent to the federated social web
         * set-data(data) can be used if the content scripts need to store data.
         * request-data() re-requests the stored data. data is also made available to content scripts over self.options, but might be out of date (?)
         * log(message, level) can be used to log errors.
