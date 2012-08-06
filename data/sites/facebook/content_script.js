@@ -38,7 +38,7 @@ var submit_selector = "#pagelet_composer form[action*=updatestatus] input[type=s
 var textarea_selector = "#pagelet_composer form[action*=updatestatus] textarea";
 var comment_field_selected_diff = {
   ".mainWrapper form > div > ul.uiList":["+child_is_active"]
-}
+};
 
 // to setup DOM MutationObserver (or Mutation Events as fallback for older browsers) when new native posts appear (when user scrolls down)
 function on_native_post(parent_element, callback) {
@@ -398,11 +398,11 @@ self.port.on("start", function(is_tab) {
   }
 
   // overwrite fallback crosspost selector and template if extract_templates.js was successful
-  if (data.checkbox_selector) {
-    checkbox_selector = data.checkbox_selector;
+  if (data.crosspost_selector) {
+    crosspost_selector = data.crosspost_selector;
   }
-  if (data.checkbox_template) {
-    checkbox_template = data.checkbox_template;
+  if (data.crosspost_template) {
+    crosspost_template = data.crosspost_template;
   }
 
   // overwrite fallback submit button selector if extract_templates.js was successful
@@ -413,6 +413,11 @@ self.port.on("start", function(is_tab) {
   // overwrite fallback textarea selector if extract_templates.js was successful
   if (data.textarea_selector) {
     textarea_selector = data.textarea_selector;
+  }
+
+  // overwrite fallback diff if extract_templates.js was successful
+  if (data.comment_field_selected_diff) {
+    comment_field_selected_diff = data.comment_field_selected_diff;
   }
 
   // set timeago locale if we have one

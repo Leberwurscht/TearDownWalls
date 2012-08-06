@@ -57,6 +57,9 @@ var post_selector = "#home_stream > *";
 var checkbox_selector = "#pagelet_composer #composerTourAudience";
 var submit_selector = "#pagelet_composer form[action*=updatestatus] input[type=submit]";
 var textarea_selector = "#pagelet_composer form[action*=updatestatus] textarea";
+var comment_field_selected_diff = {
+  ".mainWrapper form > div > ul.uiList":["+child_is_active"]
+};
 
 function get_post_template() {
   // define selectors
@@ -181,10 +184,11 @@ self.port.on("start", function() {
   self.port.emit("set-data", {
     "post_template": html_post,
     "post_selector": post_selector,
-    "checkbox_template": html_checkbox,
-    "checkbox_selector": checkbox_selector,
+    "crosspost_template": html_checkbox,
+    "crosspost_selector": checkbox_selector,
     "submit_selector": submit_selector,
     "textarea_selector": textarea_selector,
+    "comment_field_selected_diff": comment_field_selected_diff,
     "last_extract": now
   });
 
