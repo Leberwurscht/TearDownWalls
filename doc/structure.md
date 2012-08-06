@@ -6,12 +6,13 @@ Structure of TearDownWalls
 * data/sites/index.json must list all SITE_NAMEs
 * Posts are collected by polling atom feeds. This is done by data/parse_atom.js
 * The page mods and page workers for a specific walled garden communicate with lib/main.js over a well-defined interface by exchanging messages.
+    * In content scripts, self.options.data and self.options.exposed is defined, where self.options.exposed contains the resource URLs of the files given by the expose property in configuration.js.
     * The content scripts may send the following messages:
         * request-posts(posts, comments, start_date) requests the 'posts' newest toplevel posts, each with the 'comments' most recent comments, that are newer than start_date.
         * request-comments(feed, id, max_comments) requests the 'max_comments' newest comments for a post specified by feed and id
         * send-item(item) where item has properties title, content, and optionally both in_reply_to and feed: sent when a post was composed within the walled garden which should also be sent to the federated social web
         * set-data(data) can be used if the content scripts need to store data.
-        * request-data() re-requests the stored data. data is also made available to content scripts over self.options, but might be out of date (?)
+        * request-data() re-requests the stored data. data is also made available to content scripts over self.options.data, but might be out of date (?)
         * log(message, level) can be used to log errors.
         * start-worker(config) can be used to start a page worker. Format of config object is as in configuration.json.
         * terminate() tells the main code to destroy the content script.

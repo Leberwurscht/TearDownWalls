@@ -44,6 +44,11 @@ function extract_template(prototype, start_selectors) {
   return dom;
 }
 
+var post_selector = "#home_stream > *";
+var checkbox_selector = "#pagelet_composer #composerTourAudience";
+var submit_selector = "#pagelet_composer form[action*=updatestatus] input[type=submit]";
+var textarea_selector = "#pagelet_composer form[action*=updatestatus] textarea";
+
 function get_post_template() {
   // define selectors
   var stream = "ul#home_stream > li";
@@ -113,6 +118,26 @@ function get_comment_template() {
   return comment_template;
 }
 
+function get_checkbox_template() {
+  // TODO: find out checkbox selector using common parent element of input[type=submit] and select
+  var select = "select";
+
+  // find a prototype
+  var prototype = jQuery(checkbox_selector).first();
+
+  // extract template
+  var checkbox_template = extract_template(prototype, [select]);
+
+  // replace select by a checkbox
+  var checkbox = '<img class="TearDownWalls_crosspost" title="cross-post using TearDownWalls">';
+  var select = checkbox_template.find(select);
+  var select_parent = select.parent();
+  select.remove();
+  select_parent.append(jQuery(checkbox));
+
+  return checkbox_template;
+}
+
 self.port.on("start", function() {
   // do nothing if we already have a recent template
   var now = Math.round(new Date().getTime() / 1000);
@@ -123,7 +148,10 @@ self.port.on("start", function() {
   var comment_template = get_comment_template();
 
   post_template.find(".TearDownWalls_comments").append(comment_template);
-  var html = post_template.wrap("<div>").parent().html();
+  var html_post = post_template.wrap("<div>").parent().html();
+
+  var checkbox_template = get_checkbox_template();
+  var html_checkbox = checkbox_template.wrap("<div>").parent().html();
 
   // extract language, needed for localization of jquery.timeago.js
   var lang = jQuery("html").attr("lang").toLowerCase();
@@ -142,7 +170,12 @@ self.port.on("start", function() {
   });
 
   self.port.emit("set-data", {
-    "post_template": html,
+    "post_template": html_post,
+    "post_selector": post_selector,
+    "checkbox_template": html_checkbox,
+    "checkbox_selector": checkbox_selector,
+    "submit_selector": submit_selector,
+    "textarea_selector": textarea_selector,
     "last_extract": now
   });
 

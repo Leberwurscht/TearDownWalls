@@ -1,9 +1,9 @@
 {
-    "name": "friendica4fb", 
-    "license": "MPL 2.0", 
-    "author": "", 
-    "version": "0.1", 
-    "fullName": "Friendica4FB", 
-    "id": "jid1-4ym7aQD6VNrR5A", 
+    "name": "teardownwalls",
+    "license": "MPL 2.0",
+    "author": "",
+    "version": "0.1",
+    "fullName": "TearDownWalls",
+    "id": "jid1-4ym7aQD6VNrR5A",
     "description": "a basic add-on"
 }

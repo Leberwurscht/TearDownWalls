@@ -1,7 +1,7 @@
 var INJECT_AFTER = 4.0; // TODO: make configurable
+var crossposting = true;
 
 // default settings; will be overwritten by extract_templates.js
-var lang = "en";
 var post_selector = "#home_stream > *";
 var post_template = ''+
   '<li class="TearDownWalls_post">'+
@@ -30,6 +30,10 @@ var post_template = ''+
   '    </div>'+
   '  </div>'+
   '</li>';
+var crosspost_selector = '#pagelet_composer #composerTourAudience';
+var crosspost_template = '<li style="float:left;"><img class="TearDownWalls_crosspost" title="cross-post using TearDownWalls"></li>';
+var submit_selector = "#pagelet_composer form[action*=updatestatus] input[type=submit]";
+var textarea_selector = "#pagelet_composer form[action*=updatestatus] textarea";
 var comment_field_selected_diff = {
   ".mainWrapper form > div > ul.uiList":["+child_is_active"]
 }
@@ -285,7 +289,50 @@ function inject_posts(posts, remove_existing) {
   });
 }
 
-// callback for entries
+// setup crossposting
+function inject_crosspost() {
+  function update_image() {
+    if (crossposting) {
+      var url = self.options.exposed["../../activated.png"];
+    }
+    else {
+      var url = self.options.exposed["../../deactivated.png"];
+    }
+
+    jQuery(".TearDownWalls_crosspost").attr("src", url);
+  }
+
+  // construct from template
+  var toggle_crosspost = jQuery(crosspost_template);
+
+  // connect callback
+  toggle_crosspost.click(function() {
+    crossposting = !crossposting;
+    update_image();
+  });
+
+  // inject image
+  jQuery(crosspost_selector).after(toggle_crosspost);
+
+  // set image url
+  update_image();
+
+  // connect submit callback
+  jQuery(submit_selector).click(function(){
+    if (!crossposting) return; // only if crossposting is activated
+
+    var textarea = jQuery(textarea_selector);
+    var text = textarea.val();
+    var title = textarea.attr("title");
+    if (text==title || !text) return; // only if textarea contains a valid text
+
+    // send to main
+    post = {"content": text};
+    self.port.emit("send-item", post);
+  });
+}
+
+// callback for posts
 self.port.on("transmit-posts", function(posts) {
   inject_posts(posts);
 });
@@ -333,11 +380,14 @@ function request_entries(max_request) {
 self.port.on("start", function(is_tab) {
   if (!is_tab) return; // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=777632
 
-  if (!jQuery("#home_stream").length) return; // only if we find the home stream element
+  if (!jQuery(post_selector).length) return; // only if this site contains a posts section
+
+  // get data
+  var data = self.options.data;
 
   // spawn page worker if we have no recent template
   var now = Math.round(new Date().getTime() / 1000);
-  if (!( self.options.last_extract > now - 3600*24*5 )) {
+  if (!( data.last_extract > now - 3600*24*5 )) {
     self.port.emit("start-worker", {
       "url": document.URL,
       "when": "end",
@@ -345,14 +395,35 @@ self.port.on("start", function(is_tab) {
     });
   }
 
-  // overwrite fallback template if we have a better one
-  if (self.options.post_template) {
-    post_template = self.options.post_template;
+  // overwrite fallback post selector and template if extract_templates.js was successful
+  if (data.post_selector) {
+    post_selector = data.post_selector;
+  }
+  if (data.post_template) {
+    post_template = data.post_template;
+  }
+
+  // overwrite fallback crosspost selector and template if extract_templates.js was successful
+  if (data.checkbox_selector) {
+    checkbox_selector = data.checkbox_selector;
+  }
+  if (data.checkbox_template) {
+    checkbox_template = data.checkbox_template;
+  }
+
+  // overwrite fallback submit button selector if extract_templates.js was successful
+  if (data.submit_selector) {
+    submit_selector = data.submit_selector;
+  }
+
+  // overwrite fallback textarea selector if extract_templates.js was successful
+  if (data.textarea_selector) {
+    textarea_selector = data.textarea_selector;
   }
 
   // set timeago locale if we have one
-  if (self.options.timeago_locale) {
-    jQuery.timeago.settings.strings = self.options.timeago_locale;
+  if (data.timeago_locale) {
+    jQuery.timeago.settings.strings = data.timeago_locale;
   }
 
   // convert to jquery object
@@ -360,6 +431,9 @@ self.port.on("start", function(is_tab) {
 
   // for debugging
   jQuery("head").append(jQuery('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>'));
+
+  // insert crosspost checkbox
+  inject_crosspost();
 
   // request entries
   request_entries();
