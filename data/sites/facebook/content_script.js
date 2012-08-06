@@ -83,10 +83,12 @@ document.body.removeChild(script_tag);
 
 document.defaultView.addEventListener("message", function(ev) {
   if (ev.data=="load-older-posts") {
-    request_entries();
+    request_posts();
   }
 }, false);
 
+
+// to insert/delete classes when the user clicks into a comment box
 function apply_class_diff(dom, diff, reverse) {
   for (selector in diff) { if (!diff.hasOwnProperty(selector)) continue;
     var changes = diff[selector];
@@ -338,18 +340,18 @@ self.port.on("transmit-posts", function(posts) {
 });
 
 self.port.on("transmit-comments", function(comments) {
-  // get comment section of the post
+  // get the post
   var post = jQuery(".TearDownWalls_post").filter(function() {
     if ($(this).data("TearDownWalls_feed")!=comments["feed"]) return false;
     if ($(this).data("TearDownWalls_id")!=comments["id"]) return false;
     return true;
   });
 
-  // replace them
+  // replace the comments
   add_comments(post, comments["sub_items"], true);
 });
 
-function request_entries(max_request) {
+function request_posts(max_request) {
   // calculate how many post we need to inject to get POST_RATIO
   var injected_posts_so_far = jQuery(".TearDownWalls_post").length;
   var all_posts = jQuery(post_selector).length;
@@ -435,6 +437,6 @@ self.port.on("start", function(is_tab) {
   // insert crosspost checkbox
   inject_crosspost();
 
-  // request entries
-  request_entries();
+  // request posts
+  request_posts();
 });

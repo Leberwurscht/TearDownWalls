@@ -1,3 +1,11 @@
+// A facebook page is opened in the background inside a page worker, and this content script is attached.
+// It tries to extract a post template, so that injected posts look like native posts, and saves the results using the set-data event.
+
+// The advantage of doing it in a page worker is that we can try to get the template before the user visits the site,
+// and that we can get older posts loaded if necessary, so we have a better chance that there is a post in the stream
+// that is suitable for copying from.
+
+// This helper function cleans up a DOM subtree by only retaining specified elements and the paths upwards.
 function upwards_cleanup(dom, start_selectors) {
   // first, mark all elements for deletion
   dom.find("*").addClass("_to_be_deleted");
@@ -11,6 +19,7 @@ function upwards_cleanup(dom, start_selectors) {
   dom.find("._to_be_deleted").remove();
 }
 
+// This helper function gets a prototype DOM subtree and transforms it into a template by deleting all unwanted stuff.
 function extract_template(prototype, start_selectors) {
   var dom = prototype.clone();
 
@@ -178,6 +187,8 @@ self.port.on("start", function() {
     "textarea_selector": textarea_selector,
     "last_extract": now
   });
+
+  // TODO: determine which classes change when we focus the comment field
 
   self.port.emit("terminate");
 });
