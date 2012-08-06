@@ -1,4 +1,4 @@
-var INJECT_PROBABILITY = .5; // TODO: make configurable
+var INJECT_AFTER = 4.0; // TODO: make configurable
 
 // default settings; will be overwritten by extract_templates.js
 var lang = "en";
@@ -159,15 +159,24 @@ function inject_posts(posts, remove_existing) {
     native_posts = jQuery(post_selector);
   }
 
-  // go through native posts and inject our posts with a certain probability after them
+  // go through native posts and inject our posts
+  var injected_so_far = jQuery(".TearDownWalls_post").length;
+  var native_so_far = jQuery(".TearDownWalls_post").last().prevAll().andSelf().length - injected_so_far;
+
   var post_index = 0;
   native_posts.each(function(index) {
     // whether to inject a post
-    if (Math.random() >= INJECT_PROBABILITY) return true;
+    var last_injected_index = injected_so_far*INJECT_AFTER;
+    var next_injected_index = last_injected_index + INJECT_AFTER;
+    var next_native_index = native_so_far + 1;
+    native_so_far++;
+
+    if (!( next_injected_index < next_native_index )) return true;
 
     // get the post that should be injected, incrementing post_index
     var post = posts[post_index];
     post_index++;
+    injected_so_far++;
 
     // terminate if no more posts are available
     if (!post) return false;
@@ -294,20 +303,25 @@ self.port.on("transmit-comments", function(comments) {
 });
 
 function request_entries(max_request) {
+  // calculate how many post we need to inject to get POST_RATIO
+  var injected_posts_so_far = jQuery(".TearDownWalls_post").length;
+  var all_posts = jQuery(post_selector).length;
+  var native_posts = all_posts - injected_posts_so_far;
+
+  var injected_posts_wanted = Math.floor(native_posts / INJECT_AFTER);
+  var request = injected_posts_wanted - injected_posts_so_far;
+
+  // get the date of the last injected post
   var last_injected_post = jQuery(".TearDownWalls_post:last");
   if (last_injected_post.length) {
     var start_date = last_injected_post.data("TearDownWalls_date");
     start_date = parseInt(start_date);
-
-    var native_items = last_injected_post.nextAll().length;
   }
   else {
     var start_date = null;
-
-    var native_items = jQuery("ul#home_stream > li").length;
   }
 
-  request = native_items; // TODO: adapt to INJECT_PROBABILITY!
+  // limit to max_request
   if (max_request && request>max_request) request = max_request;
 
   // send message to main to get posts
