@@ -1,6 +1,8 @@
 var INJECT_AFTER = 4.0; // TODO: make configurable
 var crossposting = true;
 
+var native_post_appeared = false;
+
 // default settings; will be overwritten by extract_templates.js
 var post_selector = "#home_stream > *";
 var post_template = ''+
@@ -38,39 +40,45 @@ var comment_field_selected_diff = {
   ".mainWrapper form > div > ul.uiList":["+child_is_active"]
 }
 
-// if older posts are loaded, we also need to inject our posts. TODO: use DOM Mutation Observers
-var script =
-  'if(!UIIntentionalStream.instance) UIIntentionalStream.instance={};\n'+ // for debugging
-  'if(!UIIntentionalStream.instance.loadOlderPosts) UIIntentionalStream.instance.loadOlderPosts=function(){};\n'+ // for debugging
-  '\n'+
-  'UIIntentionalStream.instance.loadOlderPosts = (function(){\n'+
-  '  var original_loadOlderPosts = UIIntentionalStream.instance.loadOlderPosts;\n'+
+// to setup DOM MutationObserver (or Mutation Events as fallback for older browsers) when new native posts appear (when user scrolls down)
+function on_native_post(parent_element, callback) {
+  function call_callback() {
+    if (!native_post_appeared) console.log("WARNING: something is wrong with mutation observers/events");
 
-  '  function new_loadOlderPosts() {\n'+
-  '    var return_value = original_loadOlderPosts(); /* execute original function */\n'+
-
-  '    window.postMessage("load-older-posts", "*");\n'+
-  '\n'+
-  '    return return_value;\n'+
-  '  }\n'+
-  '\n'+
-  '  return new_loadOlderPosts;\n'+
-  '})();\n';
-
-// inject the javascript
-// http://wiki.greasespot.net/Content_Script_Injection
-var script_tag = document.createElement('script');
-script_tag.setAttribute("type", "application/javascript");
-script_tag.textContent = script;
-document.body.appendChild(script_tag);
-document.body.removeChild(script_tag);
-
-document.defaultView.addEventListener("message", function(ev) {
-  if (ev.data=="load-older-posts") {
-    request_posts();
+    native_post_appeared = false;
+    callback();
   }
-}, false);
 
+  function defer_execution(element) {
+    if (native_post_appeared) return true; // only once
+    if (element.parentNode != parent_element) return true; // only for direct descendants
+    if (jQuery(element).hasClass("TearDownWalls_post")) return true; // not for injected posts
+
+    native_post_appeared = true;
+    setTimeout(call_callback, 20); // wait some time for more posts to appear
+  }
+
+  if (!window.MutationObserver) {
+    console.log("warning: using mutation events");
+
+    parent_element.addEventListener("DOMNodeInserted", function(ev) {
+     defer_execution(ev.target);
+    }, false);
+  }
+  else {
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        var addedNodes = mutation.addedNodes;
+        for (var i=0; i<addedNodes.length; i++) {
+          var element = addedNodes[i];
+          defer_execution(element);
+        }
+      });
+    });
+
+    observer.observe(parent_element, {childList: true});
+  }
+}
 
 // to insert/delete classes when the user clicks into a comment box
 function apply_class_diff(dom, diff, reverse) {
@@ -420,6 +428,12 @@ self.port.on("start", function(is_tab) {
 
   // insert crosspost checkbox
   inject_crosspost();
+
+  // listen for new native posts, into which we need to inject our posts again
+  var parent_element = jQuery(post_selector).parent().get(0);
+  on_native_post(parent_element, function(){
+    request_posts();
+  });
 
   // request posts
   request_posts();
