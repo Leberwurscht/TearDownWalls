@@ -38,22 +38,6 @@ var comment_field_selected_diff = {
   ".mainWrapper form > div > ul.uiList":["+child_is_active"]
 }
 
-// TODO: crosspost checkbox. default should be configurable.
-jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").closest("li").before('<li style="float:left; border-left:1px solid #000; border: 3px solid #ddd;">&#126;f <input type="checkbox" checked="checked" id="crosspost-to-friendica" /></li>');
-
-// TODO: submit callback
-jQuery("#pagelet_composer form[action*=updatestatus] input[type=submit]").click(function(){
-  if (!jQuery("#crosspost-to-friendica").attr("checked")) return;
-
-  var text = jQuery("#pagelet_composer form[action*=updatestatus] textarea").val();
-  var title = jQuery("#pagelet_composer form[action*=updatestatus] textarea").attr("title");
-  if (text==title) return;
-
-  // send to main
-  entry = {"content": text};
-  self.port.emit("send-item", entry);
-});
-
 // if older posts are loaded, we also need to inject our posts. TODO: use DOM Mutation Observers
 var script =
   'if(!UIIntentionalStream.instance) UIIntentionalStream.instance={};\n'+ // for debugging
