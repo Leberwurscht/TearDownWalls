@@ -3,6 +3,9 @@ var crossposting = true;
 
 var native_post_appeared = false;
 
+var own_author;
+var own_avatar;
+
 // default settings; will be overwritten by extract_templates.js
 var post_selector = "#home_stream > *";
 var post_template = ''+
@@ -182,6 +185,10 @@ function inject_posts(posts, remove_existing) {
     // construct the post that should be injected
     var injected_post = post_template.clone();
 
+    // set own avatar
+    var avatar = injected_post.find(".TearDownWalls_comment_field_avatar");
+    avatar.attr("src", own_avatar);
+
     // set avatar
     var avatar = injected_post.find(".TearDownWalls_avatar");
     avatar.attr("src", post.avatar);
@@ -260,13 +267,13 @@ function inject_posts(posts, remove_existing) {
       self.port.emit("send-item", comment);
 
       // display comment
-      var author = ""; // TODO
-      var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_image").attr("src");
+      var author = own_author;
+      var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_field_avatar").attr("src");
       var now = new Date().getTime();
       var content = jQuery("<div>").text(text).html(); // escape html characters
 
       add_comments(field.parents(".TearDownWalls_post"), [{
-        "author":"",
+        "author":author,
         "avatar":avatar,
         "date":now,
         "content": content.replace("\n","<br />")
@@ -424,6 +431,10 @@ self.port.on("start", function(is_tab) {
   if (data.timeago_locale) {
     jQuery.timeago.settings.strings = data.timeago_locale;
   }
+
+  // get own name and avatar url
+  own_author = jQuery("#pagelet_welcome_box").text();
+  own_avatar = jQuery("#pagelet_welcome_box img").attr("src");
 
   // convert to jquery object
   post_template = jQuery(post_template);
