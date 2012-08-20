@@ -280,6 +280,13 @@ function inject_posts(posts, remove_existing) {
       }]);
     });
 
+    // disable comment field if necessary
+    if (!post.commenting_possible) {
+      injected_post.find(".TearDownWalls_comment_field").attr("disabled", "disabled");
+      injected_post.find(".TearDownWalls_comment_field").val("------------");
+      injected_post.find(".TearDownWalls_comment_field").removeAttr("title");
+    }
+
     // append important data to the post
     injected_post.data("TearDownWalls_feed", post.feed);
     injected_post.data("TearDownWalls_id", post.id);
