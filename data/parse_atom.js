@@ -24,10 +24,13 @@ self.port.on("request-entries", function(xml) {
 
     var id = entry.find("id").text();
     var author = entry.find("author name").text();
+    if (!author) author = entry.parent().children("title").text();
     var avatar = entry.find("author link[rel=avatar]").attr("href");
     var date_string = entry.find("published").text();
+    if (!date_string) date_string = entry.find("updated").text();
     var title = entry.find("title").text();
     var insecure_content = entry.find("content").text();
+    if (!insecure_content) insecure_content = entry.find("summary").text();
 
     var in_reply_to = null;
     if (namespace_thread) {
