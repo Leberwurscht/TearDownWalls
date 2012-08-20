@@ -1,9 +1,16 @@
 {
     "name": "teardownwalls",
     "license": "MPL 2.0",
-    "author": "",
+    "author": "Leberwurscht",
     "version": "0.1",
     "fullName": "TearDownWalls",
     "id": "jid1-4ym7aQD6VNrR5A",
-    "description": "a basic add-on"
+    "description": "Allows reading feeds and crossposting to other targets from proprietary social network sites",
+    "preferences":[{
+      "name": "helpDev",
+      "title": "Help development",
+      "description": "Submit important log messages to the developer",
+      "type": "bool",
+      "value": false
+    }]
 }
