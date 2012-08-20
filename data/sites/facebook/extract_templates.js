@@ -143,10 +143,10 @@ function get_checkbox_template() {
   var select = "select";
 
   // find a prototype
-  var prototype = jQuery(checkbox_selector).first();
+  var checkbox_template = jQuery(checkbox_selector).first().clone();
 
   // extract template
-  var checkbox_template = extract_template(prototype, [select]);
+  transform_to_template(checkbox_template, [select]);
 
   // replace select by a checkbox
   var checkbox = '<img class="TearDownWalls_crosspost" title="cross-post using TearDownWalls">';
@@ -688,8 +688,7 @@ self.port.on("start", function() {
 
   // extract templates
   console.log("extracting templates");
-  get_post_template_new(function($post_template, comment_field_selected_diff){
-
+  get_post_template(function($post_template, comment_field_selected_diff) {
     var html_post = $post_template.wrap("<div>").parent().html();
 
     var $checkbox_template = get_checkbox_template();
