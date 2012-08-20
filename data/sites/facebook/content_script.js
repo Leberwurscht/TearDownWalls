@@ -263,7 +263,7 @@ function inject_posts(posts, remove_existing) {
       field.blur();
 
       // send comment
-      comment = {"content": text, "feed":ev.data.feed, "in_reply_to":ev.data.post_id};
+      comment = {"content": text, "targets":[ev.data.feed], "in_reply_to":ev.data.post_id};
       self.port.emit("send-item", comment);
 
       // display comment
