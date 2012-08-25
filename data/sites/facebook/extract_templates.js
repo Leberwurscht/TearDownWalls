@@ -138,6 +138,14 @@ function most_abundant_classes(elements) {
   return best_classes;
 }
 
+function convert_to_absolute(url){ // http://james.padolsey.com/javascript/getting-a-fully-qualified-url/
+  var img = document.createElement('img');
+  img.src = url;
+  url = img.src;
+  img.src = null;
+  return url;
+}
+
 function get_checkbox_template() {
   // TODO: find out checkbox selector using common parent element of input[type=submit] and select
   var select = "select";
@@ -686,6 +694,22 @@ self.port.on("start", function() {
       ]
   });
 
+  // get identity
+  if (!self.options.data.identities) self.options.data.identities = {};
+  var identities = self.options.data.identities;
+  own_url = jQuery("#pagelet_welcome_box a").attr("href");
+  own_name = jQuery("#pagelet_welcome_box").text();
+  own_avatar = jQuery("#pagelet_welcome_box img").attr("src");
+  own_url = convert_to_absolute(own_url);
+  own_avatar = convert_to_absolute(own_avatar);
+
+  if (own_url) {
+    identities[own_url] = {
+      "name": own_name,
+      "avatar": own_avatar
+    };
+  }
+
   // extract templates
   console.log("extracting templates");
   get_post_template(function($post_template, comment_field_selected_diff) {
@@ -704,7 +728,8 @@ self.port.on("start", function() {
       "submit_selector": submit_selector,
       "textarea_selector": textarea_selector,
       "comment_field_selected_diff": comment_field_selected_diff,
-      "last_extract": now
+      "last_extract": now,
+      "identities": identities
     });
 
     self.port.emit("terminate");
