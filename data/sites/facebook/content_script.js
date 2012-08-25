@@ -3,7 +3,7 @@ var crossposting = true;
 
 var native_post_appeared = false;
 
-var own_author;
+var own_name;
 var own_avatar;
 
 // default settings; will be overwritten by extract_templates.js
@@ -267,7 +267,7 @@ function inject_posts(posts, remove_existing) {
       self.port.emit("send-item", comment);
 
       // display comment
-      var author = own_author;
+      var author = own_name;
       var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_field_avatar").attr("src");
       var now = new Date().getTime();
       var content = jQuery("<div>").text(text).html(); // escape html characters
@@ -440,7 +440,7 @@ self.port.on("start", function(is_tab) {
   }
 
   // get own name and avatar url
-  own_author = jQuery("#pagelet_welcome_box").text();
+  own_name = jQuery("#pagelet_welcome_box").text();
   own_avatar = jQuery("#pagelet_welcome_box img").attr("src");
 
   // convert to jquery object
