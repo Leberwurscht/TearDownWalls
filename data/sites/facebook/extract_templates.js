@@ -600,7 +600,6 @@ function get_post_template(handler) {
   var $comment_field = $original_post.find("textarea");
 
   $comment_field.focus(function() {
-    $comment_field.parents("ul:first").addClass("child_is_active") // cheat for debugging TODO: remove
     jQuery(this).trigger("focus-callbacks-done");
   });
 

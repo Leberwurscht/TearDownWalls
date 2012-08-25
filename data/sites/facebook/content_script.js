@@ -1,4 +1,4 @@
-var INJECT_AFTER = 4.0; // TODO: make configurable
+var INJECT_AFTER = 5.0; // TODO: make configurable
 var crossposting = true;
 
 var native_post_appeared = false;
@@ -445,9 +445,6 @@ self.port.on("start", function(is_tab) {
 
   // convert to jquery object
   post_template = jQuery(post_template);
-
-  // for debugging
-  jQuery("head").append(jQuery('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>'));
 
   // insert crosspost checkbox
   inject_crosspost();
