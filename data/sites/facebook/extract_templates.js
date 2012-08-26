@@ -683,7 +683,7 @@ self.port.on("start", function() {
   // get localization of jquery.timeago.js - this is an ugly workaround for the fact that we cannot include files from content scripts.
   // Start a page worker with the right localization and a script that saves the localization using set-data.
   self.port.emit("start-worker", {
-      "url": null,
+      "url": "about:blank",
       "when": "end",
       "files": [
         "../../lib/jquery.js",
