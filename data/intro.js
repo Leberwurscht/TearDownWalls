@@ -1,6 +1,10 @@
 // list of identities
 var $identities = jQuery("#identities");
 
+if (self.options.type=="atom") {
+  jQuery("#identity_field").hide();
+}
+
 for (url in self.options.identities) { if (!self.options.identities.hasOwnProperty(url)) continue;
   var identity = self.options.identities[url];
 
@@ -57,7 +61,7 @@ jQuery("input[name^=site_]").first().attr("checked", "checked");
 $('#intro').submit(function() {
   // get identity
   var identity = jQuery("input[name=identity]:checked").val();
-  if (identity=="") { // custom identity
+  if (!identity) { // custom identity
     var url = jQuery("input[name=url]").val();
     var name = jQuery("input[name=name]").val();
     var avatar = jQuery("input[name=avatar]").val();
