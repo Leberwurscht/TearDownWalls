@@ -1,5 +1,5 @@
 var INJECT_AFTER = 5.0; // TODO: make configurable
-var crossposting = true;
+var crossposting = self.options.data.crossposting;
 
 var native_post_appeared = false;
 
@@ -316,6 +316,11 @@ function inject_crosspost() {
   // connect callback
   toggle_crosspost.click(function() {
     crossposting = !crossposting;
+
+    self.port.emit("set-data", {
+      "crossposting": crossposting,
+    });
+
     update_image();
   });
 
