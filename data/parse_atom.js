@@ -1,41 +1,78 @@
 self.port.on("request-entries", function(xml) {
-  // try to determine important namespaces
-  function findNS(ns) {
-    var pos = xml.indexOf(ns);
-    if (pos===-1) return;
+  // parse xml
+  parser = new DOMParser();
+  doc = parser.parseFromString(xml, "text/xml");
 
-    var end_pos = xml.lastIndexOf("=", pos);
-    if (end_pos===-1) return;
-
-    var start_pos = xml.lastIndexOf("xmlns:", end_pos);
-    if (start_pos===-1) return;
-
-    return xml.substring(start_pos+6, end_pos)
+  // find feed element
+  var feed;
+  for (var i=0; i<doc.childNodes.length; i++) {
+    var child = doc.childNodes[i];
+    if (child.nodeType==1 && child.nodeName.toUpperCase()=="FEED") {
+      feed = child;
+      break;
+    }
   }
-  var namespace_tombstones = findNS("http://purl.org/atompub/tombstones/1.0");
-  var namespace_thread = findNS("http://purl.org/syndication/thread/1.0");
 
-  // create a list of entries from the feed
+  if (!feed) {
+    console.log("failed to get feed element");
+    return;
+  }
+
+  // loop through entry elements
   var entries = {};
-  j_xml = jQuery(xml);
 
-  j_xml.find("entry").each(function(index) {
-    var entry = jQuery(this);
+  for (var i=0; i<feed.childNodes.length; i++) {
+    var feed_child = feed.childNodes[i];
+    if (feed_child.nodeType!=1 || feed_child.nodeName.toUpperCase()!="ENTRY") continue;
+    else entry = feed_child;
 
-    var id = entry.find("id").text();
-    var author = entry.find("author name").text();
-    if (!author) author = entry.parent().children("title").text();
-    var avatar = entry.find("author link[rel=avatar]").attr("href");
-    var date_string = entry.find("published").text();
-    if (!date_string) date_string = entry.find("updated").text();
-    var title = entry.find("title").text();
-    var insecure_content = entry.find("content").text();
-    if (!insecure_content) insecure_content = entry.find("summary").text();
+    // extract information
+    var id = null,
+        author = null,
+        avatar = null,
+        date_string = null,
+        title = null,
+        insecure_content = null,
+        in_reply_to = null;
 
-    var in_reply_to = null;
-    if (namespace_thread) {
-      fully_qualified = namespace_thread + "\\:in-reply-to";
-      var in_reply_to = entry.find(fully_qualified).attr("ref");
+    for (var j=0; j<entry.childNodes.length; j++) {
+      var entry_child = entry.childNodes[j];
+      if (entry_child.nodeType!=1) continue;
+
+      if (entry_child.nodeName.toUpperCase()=="ID" && entry_child.childNodes.length) {
+        id = entry_child.childNodes[0].nodeValue;
+      }
+      else if (entry_child.nodeName.toUpperCase()=="AUTHOR") {
+        for (var k=0; k<entry_child.childNodes.length; k++) {
+          var author_child = entry_child.childNodes[k];
+          if (author_child.nodeType!=1) continue;
+
+          if (author_child.nodeName.toUpperCase()=="NAME" && author_child.childNodes.length) {
+            author = author_child.childNodes[0].nodeValue;
+          }
+          else if (author_child.nodeName.toUpperCase()=="LINK" && author_child.getAttribute("rel")=="avatar") {
+            avatar = author_child.getAttribute("href");
+          }
+        }
+      }
+      else if (entry_child.nodeName.toUpperCase()=="TITLE" && entry_child.childNodes.length) {
+        title = entry_child.childNodes[0].nodeValue;
+      }
+      else if (entry_child.nodeName.toUpperCase()=="PUBLISHED" && entry_child.childNodes.length) {
+        date_string = entry_child.childNodes[0].nodeValue;
+      }
+      else if (entry_child.nodeName.toUpperCase()=="UPDATED" && entry_child.childNodes.length && !date_string) {
+        date_string = entry_child.childNodes[0].nodeValue;
+      }
+      else if (entry_child.nodeName.toUpperCase()=="CONTENT" && entry_child.childNodes.length) {
+        insecure_content = entry_child.textContent; // not supported by opera?
+      }
+      else if (entry_child.nodeName.toUpperCase()=="SUMMARY" && entry_child.childNodes.length && !insecure_content) {
+        insecure_content = entry_child.textContent;
+      }
+      else if (entry_child.localName.toUpperCase()=="IN-REPLY-TO" && entry_child.namespaceURI=="http://purl.org/syndication/thread/1.0") {
+        in_reply_to = entry_child.getAttribute("ref");
+      }
     }
 
     // sanitize HTML content using Google Caja to avoid XSS attacks
@@ -55,16 +92,13 @@ self.port.on("request-entries", function(xml) {
       "title": title,
       "content": content
     };
-  });
+  }
 
   // process deletion requests
-  if (namespace_tombstones) {
-    fully_qualified = namespace_tombstones + "\\:deleted-entry";
-
-    j_xml.find(fully_qualified).each(function(index) {
-      var id = jQuery(this).attr("ref");
-      entries[id] = false;
-    });
+  var tombstones = feed.getElementsByTagNameNS("http://purl.org/atompub/tombstones/1.0", "deleted-entry");
+  for (var i=0; i<tombstones.length; i++) {
+    var id = tombstones[i].getAttribute("ref");
+    entries[id] = false;
   }
 
   self.port.emit("transmit-entries", entries);
