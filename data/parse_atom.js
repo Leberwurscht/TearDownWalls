@@ -80,8 +80,9 @@ self.port.on("request-entries", function(xml) {
       }
     }
 
-    // check if entry contains one of the requested categories
-    if (self.options.categories && self.options.categories.length) {
+    // check if entry contains one of the requested categories (only for toplevel items)
+    // TODO: it is unnecessary to save comments to discarded toplevel posts
+    if (self.options.categories && self.options.categories.length && !in_reply_to) {
       var found = false;
       for (var j=0; j<self.options.categories.length; j++) {
         var requested_category = self.options.categories[j];
