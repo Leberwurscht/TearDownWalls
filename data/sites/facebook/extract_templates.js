@@ -709,6 +709,8 @@ self.port.on("start", function() {
     };
   }
 
+  self.port.emit("set-data", { "identities": identities });
+
   // extract templates
   console.log("extracting templates");
   get_post_template(function($post_template, comment_field_selected_diff) {
@@ -727,8 +729,7 @@ self.port.on("start", function() {
       "submit_selector": submit_selector,
       "textarea_selector": textarea_selector,
       "comment_field_selected_diff": comment_field_selected_diff,
-      "last_extract": now,
-      "identities": identities
+      "last_extract": now
     });
 
     self.port.emit("terminate");
