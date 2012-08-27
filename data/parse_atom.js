@@ -33,7 +33,8 @@ self.port.on("request-entries", function(xml) {
         date_string = null,
         title = null,
         insecure_content = null,
-        in_reply_to = null;
+        in_reply_to = null,
+        categories = [];
 
     for (var j=0; j<entry.childNodes.length; j++) {
       var entry_child = entry.childNodes[j];
@@ -73,6 +74,25 @@ self.port.on("request-entries", function(xml) {
       else if (entry_child.localName.toUpperCase()=="IN-REPLY-TO" && entry_child.namespaceURI=="http://purl.org/syndication/thread/1.0") {
         in_reply_to = entry_child.getAttribute("ref");
       }
+      else if (entry_child.nodeName.toUpperCase()=="CATEGORY") {
+        var term = entry_child.getAttribute("term");
+        categories.push(term);
+      }
+    }
+
+    // check if entry contains one of the requested categories
+    if (self.options.categories && self.options.categories.length) {
+      var found = false;
+      for (var j=0; j<self.options.categories.length; j++) {
+        var requested_category = self.options.categories[j];
+
+        if (categories.indexOf(requested_category) != -1) {
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) continue;
     }
 
     // sanitize HTML content using Google Caja to avoid XSS attacks
