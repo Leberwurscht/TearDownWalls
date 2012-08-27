@@ -196,7 +196,12 @@ function get_post_template(handler) {
 
   if (!posts.find(avatar_selector+":first").length) { // if this selector does not work, try another method:
     // get most abundant classes from images linking to profiles
-    var images_with_link = posts.find('a[href*="/profile.php"]:not([href*="and="]) img');
+    var images_with_link = posts.find("a").filter(function() {
+      var href = jQuery(this).attr("href");
+      if (!href) return false;
+      if (href.indexOf("/profile.php")!=-1 && href.indexOf("and=")==-1) return true;
+      if (href.match(/facebook.com\/[a-zA-Z0-9]*\.[a-zA-Z0-9]*$/)) return true;
+    }).find("img");
     var candidate = most_abundant_classes(images_with_link);
 
     if (!candidate) {
