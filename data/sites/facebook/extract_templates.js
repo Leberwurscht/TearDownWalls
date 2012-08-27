@@ -283,6 +283,7 @@ function get_post_template(handler) {
 
   if (!filtered_posts.length) {
     self.port.emit("log", "no remaining posts after filtering", -1);
+    return;
   }
 
   // === Third: Try to sort out what are comments and what is the top level post, construct and rate templates ===
