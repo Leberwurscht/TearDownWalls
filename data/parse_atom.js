@@ -34,7 +34,8 @@ self.port.on("request-entries", function(xml) {
         title = null,
         insecure_content = null,
         in_reply_to = null,
-        categories = [];
+        categories = [],
+        verb = "";
 
     for (var j=0; j<entry.childNodes.length; j++) {
       var entry_child = entry.childNodes[j];
@@ -78,6 +79,9 @@ self.port.on("request-entries", function(xml) {
         var term = entry_child.getAttribute("term");
         categories.push(term);
       }
+      else if (entry_child.localName.toUpperCase()=="VERB" && entry_child.namespaceURI=="http://activitystrea.ms/spec/1.0/") {
+        verb = entry_child.childNodes[0].nodeValue;
+      }
     }
 
     // check if entry contains one of the requested categories (only for toplevel items)
@@ -94,6 +98,11 @@ self.port.on("request-entries", function(xml) {
       }
 
       if (!found) continue;
+    }
+
+    // check activitystreams verb
+    if (self.options.verbs && self.options.verbs.length) {
+      if (self.options.verbs.indexOf(verb)==-1) continue;
     }
 
     // sanitize HTML content using Google Caja to avoid XSS attacks
