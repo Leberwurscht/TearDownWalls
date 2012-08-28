@@ -666,6 +666,7 @@ function get_post_template(handler) {
 
     // reinsert placeholder
     $best_template.find(".TearDownWalls_comment_field").attr("title", placeholder);
+    $best_template.find(".TearDownWalls_comment_field").text(placeholder);
     $best_template.find(".TearDownWalls_comment_field").val(placeholder);
 
     // call handler now that we are done
@@ -738,6 +739,6 @@ self.port.on("start", function() {
       "last_extract": now
     });
 
-    self.port.emit("terminate");
+    self.port.emit("terminate"); // TODO: also terminate if get_post_template fails
   });
 });
