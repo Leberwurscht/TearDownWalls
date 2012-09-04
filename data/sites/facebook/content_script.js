@@ -345,6 +345,12 @@ function inject_crosspost() {
   });
 }
 
+// log-out callback
+self.port.on("log-out", function() {
+  console.log("logging out of facebook");
+  jQuery("#logout_form").submit(); // TODO: untested
+});
+
 // callback for posts
 self.port.on("transmit-posts", function(posts) {
   inject_posts(posts);

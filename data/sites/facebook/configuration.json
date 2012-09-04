@@ -2,12 +2,18 @@
   "page_mods":[{
     "pattern": "*.facebook.com",
     "when": "ready",
-    "files": ["../../lib/jquery.js", "../../lib/jquery.timeago.js", "../../lib/jquery.autosize.js", "content_script.js"],
+    "files": ["../../lib/jquery.js", "../../lib/jquery.timeago.js", "../../lib/jquery.autosize.js", "content_script.js", "get_user.js"],
     "expose": ["../../activated.png", "../../deactivated.png"]
   }],
   "page_workers":[{
     "url": "https://www.facebook.com/?sk=nf",
     "when": "end",
     "files": ["../../lib/jquery.js", "extract_templates.js"]
-  }]
+  }],
+  "get_logged_in_user": {
+    "url": "https://www.facebook.com/?sk=nf",
+    "when": "end",
+    "files": ["../../lib/jquery.js", "get_user.js"]
+  },
+  "login_url": "https://www.facebook.com/login.php"
 }
