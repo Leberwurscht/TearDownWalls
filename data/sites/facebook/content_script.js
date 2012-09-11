@@ -410,16 +410,6 @@ self.port.on("start", function(is_tab) {
   // get data
   var data = self.options.site_data;
 
-  // spawn page worker if we have no recent template
-  var now = Math.round(new Date().getTime() / 1000);
-  if (!( data.last_extract > now - 3600*24*5 )) {
-    self.port.emit("start-worker", {
-      "url": document.URL,
-      "when": "end",
-      "files": ["../../lib/jquery.js", "extract_templates.js"]
-    });
-  }
-
   // overwrite fallback post selector and template if extract_templates.js was successful
   if (data.post_selector) {
     post_selector = data.post_selector;

@@ -26,5 +26,20 @@ function get_user() {
 
 jQuery(document).ready(function() {
   var user = get_user();
-  if (user) self.port.emit("logged-in", user.url, user.avatar, user.name);
+  if (user) {
+    self.port.emit("logged-in", user.url, user.avatar, user.name);
+
+    // spawn page worker if we have no recent template
+    if (jQuery(post_selector).length) {
+      var data = self.options.site_data;
+      var now = Math.round(new Date().getTime() / 1000);
+      if (!( data.last_extract > now - 3600*24*5 )) {
+        self.port.emit("start-worker", {
+          "url": document.URL,
+          "when": "end",
+          "files": ["../../lib/jquery.js", "extract_templates.js"]
+        });
+      }
+    }
+  }
 });
