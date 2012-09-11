@@ -263,7 +263,7 @@ function inject_posts(posts, remove_existing) {
 
       // send comment
       comment = {"content": text, "connections":[ev.data.connection], "in_reply_to":ev.data.post_id};
-      self.port.emit("send-item", user.url, comment);
+      self.port.emit("send-item", user.identifier, comment);
 
       // display comment
       var author = user.name;
@@ -318,7 +318,7 @@ function inject_crosspost() {
 
     self.port.emit("set-data", {
       "crossposting": crossposting
-    }, user.url);
+    }, user.identifier);
 
     update_image();
   });
@@ -340,7 +340,7 @@ function inject_crosspost() {
 
     // send to main
     post = {"content": text};
-    self.port.emit("send-item", user.url, post);
+    self.port.emit("send-item", user.identifier, post);
   });
 }
 
@@ -391,7 +391,7 @@ function request_posts(max_request) {
 
   // send message to main to get posts
   if (request) {
-    self.port.emit("request-posts", user.url, request, 2, start_date);
+    self.port.emit("request-posts", user.identifier, request, 2, start_date);
   }
 }
 
@@ -400,10 +400,10 @@ self.port.on("start", function(is_tab) {
 
   // only for certain users
   user = get_user();
-  if (!user || !self.options.account_data[user.url]) return;
+  if (!user || !self.options.account_data[user.identifier]) return;
 
   //
-  crossposting = self.options.account_data[user.url].crossposting;
+  crossposting = self.options.account_data[user.identifier].crossposting;
 
   if (!jQuery(post_selector).length) return; // only if this site contains a posts section
 

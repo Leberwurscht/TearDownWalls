@@ -1,4 +1,4 @@
-function list($sites, sites, select) { // sites = [account1, account2, ...], account = {avatar: ..., name: ..., url: ...}
+function list($sites, sites, select) { // sites = [account1, account2, ...], account = {identifier: ..., avatar: ..., name: ..., url: ...}
   $sites.empty();
 
   for (var i=0; i<sites.length; i++) {
@@ -18,10 +18,11 @@ function list($sites, sites, select) { // sites = [account1, account2, ...], acc
 
       if (select) {
         var $radio = jQuery('<input type="radio" name="account">');
-        $radio.val(account.url);
+        $radio.val(account.identifier);
         $radio.data("site", site);
         $radio.data("avatar", account.avatar);
         $radio.data("name", account.name);
+        $radio.data("url", account.url);
         $account.append($radio);
       }
 
@@ -45,7 +46,7 @@ function list($sites, sites, select) { // sites = [account1, account2, ...], acc
         $account.append("]");
 
         $delete.click(function() {
-          self.port.emit("delete-account", account.url);
+          self.port.emit("delete-account", account.identifier);
         });
       }
 
@@ -97,10 +98,11 @@ self.port.on("currently-logged-in", function(site, account) {
   jQuery("#site_"+site).find(".radio, .avatar, .name").show();
 
   var $radio = jQuery("#site_"+site+" .radio")
-  $radio.val(account.url);
+  $radio.val(account.identifier);
   $radio.data("site", site);
   $radio.data("avatar", account.avatar);
   $radio.data("name", account.name);
+  $radio.data("url", account.url);
 
   jQuery("#site_"+site+" .avatar").attr("src", account.avatar);
   jQuery("#site_"+site+" .name").text(account.name);

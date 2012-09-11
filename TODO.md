@@ -4,7 +4,7 @@ first version
 * per-identity configuration DONE
 * extract templates when connecting DONE
 * display login page if no identity known for a site DONE
-* normalize profile url
+* normalize profile url DONE
 * error if no target configured and toplevel message is sent
 * check if item_store can introduce malformed html
 * likes

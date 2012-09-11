@@ -8,12 +8,13 @@ self.port.on("query-account", function(type, target, accounts) {
 
     jQuery("#connect").click(function() {
       console.log(jQuery("input[name=account]:checked").length);
-      var url = jQuery("input[name=account]:checked").val();
+      var identifier = jQuery("input[name=account]:checked").val();
       var site = jQuery("input[name=account]:checked").data("site");
       var avatar = jQuery("input[name=account]:checked").data("avatar");
       var name = jQuery("input[name=account]:checked").data("name");
+      var url = jQuery("input[name=account]:checked").data("url");
 
-      self.port.emit("account-selected", type, target, site, url, avatar, name);
+      self.port.emit("account-selected", type, target, site, identifier, url, avatar, name);
     });
   }
   else {

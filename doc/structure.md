@@ -13,20 +13,21 @@ Configuration
 -------------
 
 * Configuration consists of two lists: The accounts list and the connections list.
-* Accounts are identified by both a site identifiers and an account identifier, e.g. accounts['facebook'].configuration['http://www.facebook.com/john.doe']. A site identifier is the name of a walled garden social networking site; supported ones are listed in sites.json. The (normalized) profile URL of a specific account on such a site is used as account identifier. For each account, the account name, avatar and a list of associaten connections is saved. Additionally, content scripts can save and read custom data per account and per site.
+* Accounts are identified by both a site identifiers and an account identifier, e.g. accounts['facebook'].configuration['http://www.facebook.com/john.doe']. A site identifier is the name of a walled garden social networking site; supported ones are listed in sites.json. The profile URL of a specific account on such a site is normalized and used as account identifier. For each account, the profile URL, account name, avatar and a list of associaten connections is saved. Additionally, content scripts can save and read custom data per account and per site.
 * A connection is a bundle of a feed and a crossposting target, so that you can send and receive messages. Currently, only feeds in the atom format are supported. A connection can be used for multiple accounts.
 
 storage.accounts = {
 	"facebook": {
 		configuration: {
-			"http://www.facebook.com/john.doe": {
+			"john.doe": {
 				connections: [...],
+				url: "http://www.facebook.com/john.doe"
 				name:
 				avatar:
 			}
 		},
 		account_data: {
-			"http://www.facebook.com/john.doe": {...}
+			"john.doe": {...}
 		},
 		site_data: {...}
 	}
@@ -49,7 +50,7 @@ Interface between main code and content scripts
 * The page mods and page workers for a specific walled garden communicate with lib/main.js over a well-defined interface by exchanging messages.
     * In content scripts, self.options.data and self.options.exposed is defined, where self.options.exposed contains the resource URLs of the files given by the expose property in configuration.js.
     * The content scripts may send the following messages:
-	* logged-in(profile_url, avatar_url, name) should be sent if a user is logged in
+	* logged-in(account_identifier, profile_url, avatar_url, name) should be sent if a user is logged in
         * request-posts(account, posts, comments, start_date) requests the 'posts' newest toplevel posts, each with the 'comments' most recent comments, that are newer than start_date. 'account' is the account identifier for which we want to get the posts.
         * request-comments(connection, id, max_comments) requests the 'max_comments' newest comments for a post specified by connection and post id
         * send-item(account, item) where item has properties title, content, and optionally both in_reply_to and feed: sent when a post was composed within the walled garden which should also be sent to the federated social web

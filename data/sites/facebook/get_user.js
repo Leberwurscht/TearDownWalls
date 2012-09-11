@@ -17,7 +17,13 @@ function get_user() {
 
   if (!own_url) return;
 
+  // make identifier from profile url: remove trailing http(s)://*.facebook.com/
+  var identifier = own_url.replace(/^https?:\/\//i, "");
+  identifier = identifier.replace(/^[^\/]*\.facebook.com\//i, "");
+  identifier = identifier.toLowerCase(); // case insensitive
+
   return {
+    identifier: identifier,
     url: own_url,
     name: own_name,
     avatar: own_avatar
@@ -27,7 +33,7 @@ function get_user() {
 jQuery(document).ready(function() {
   var user = get_user();
   if (user) {
-    self.port.emit("logged-in", user.url, user.avatar, user.name);
+    self.port.emit("logged-in", user.identifier, user.url, user.avatar, user.name);
 
     // spawn page worker if we have no recent template
     if (jQuery(post_selector).length) {
