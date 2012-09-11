@@ -1,6 +1,7 @@
 var list = [];
 
 function convert_to_absolute(url){ // http://james.padolsey.com/javascript/getting-a-fully-qualified-url/
+  if (!url) return url;
   var img = document.createElement('img');
   img.src = url;
   url = img.src;
@@ -14,7 +15,7 @@ jQuery('link[type="application/atom+xml"]').each(function(){
 
   list.push({
     "type": "atom",
-    "url": url,
+    "url": url
   });
 });
 
@@ -24,7 +25,7 @@ jQuery('link[type="application/teardownwalls_intro"]').each(function(){
 
   list.push({
     "type": "intro",
-    "url": url,
+    "url": url
   });
 });
 
