@@ -1,10 +1,9 @@
 var INJECT_AFTER = 5.0; // TODO: make configurable
-var crossposting = self.options.data.crossposting;
+var crossposting;
 
 var native_post_appeared = false;
 
-var own_name;
-var own_avatar;
+var user;
 
 // default settings; will be overwritten by extract_templates.js
 var post_selector = "#home_stream > *";
@@ -187,7 +186,7 @@ function inject_posts(posts, remove_existing) {
 
     // set own avatar
     var avatar = injected_post.find(".TearDownWalls_comment_field_avatar");
-    avatar.attr("src", own_avatar);
+    avatar.attr("src", user.avatar);
 
     // set avatar
     var avatar = injected_post.find(".TearDownWalls_avatar");
@@ -221,7 +220,7 @@ function inject_posts(posts, remove_existing) {
     injected_post.find(".TearDownWalls_show_all").click(function(event) {
       event.preventDefault()
 
-      self.port.emit("request-comments", post.feed, post.id);
+      self.port.emit("request-comments", post.connection, post.id);
     });
 
     // jquery.autosize.js for growing textareas
@@ -252,7 +251,7 @@ function inject_posts(posts, remove_existing) {
     });
 
     // keydown callback to submit posts
-    injected_post.find(".TearDownWalls_comment_field").keydown({"feed":post.feed, "post_id":post.id}, function(ev) {
+    injected_post.find(".TearDownWalls_comment_field").keydown({"connection":post.feed, "post_id":post.id}, function(ev) {
       if (ev.keyCode!=13 || ev.shiftKey) return; // only react to return without shift pressed
 
       field = jQuery(this);
@@ -263,11 +262,11 @@ function inject_posts(posts, remove_existing) {
       field.blur();
 
       // send comment
-      comment = {"content": text, "targets":[ev.data.feed], "in_reply_to":ev.data.post_id};
-      self.port.emit("send-item", comment);
+      comment = {"content": text, "connections":[ev.data.connection], "in_reply_to":ev.data.post_id};
+      self.port.emit("send-item", user.url, comment);
 
       // display comment
-      var author = own_name;
+      var author = user.name;
       var avatar = field.parents(".TearDownWalls_post").find(".TearDownWalls_comment_field_avatar").attr("src");
       var now = new Date().getTime();
       var content = jQuery("<div>").text(text).html(); // escape html characters
@@ -288,7 +287,7 @@ function inject_posts(posts, remove_existing) {
     }
 
     // append important data to the post
-    injected_post.data("TearDownWalls_feed", post.feed);
+    injected_post.data("TearDownWalls_connection", post.connection);
     injected_post.data("TearDownWalls_id", post.id);
     injected_post.data("TearDownWalls_date", post.date);
 
@@ -318,8 +317,8 @@ function inject_crosspost() {
     crossposting = !crossposting;
 
     self.port.emit("set-data", {
-      "crossposting": crossposting,
-    });
+      "crossposting": crossposting
+    }, user.url);
 
     update_image();
   });
@@ -341,14 +340,14 @@ function inject_crosspost() {
 
     // send to main
     post = {"content": text};
-    self.port.emit("send-item", post);
+    self.port.emit("send-item", user.url, post);
   });
 }
 
 // log-out callback
 self.port.on("log-out", function() {
   console.log("logging out of facebook");
-  jQuery("#logout_form").submit(); // TODO: untested
+  jQuery("#logout_form").submit();
 });
 
 // callback for posts
@@ -359,7 +358,7 @@ self.port.on("transmit-posts", function(posts) {
 self.port.on("transmit-comments", function(comments) {
   // get the post
   var post = jQuery(".TearDownWalls_post").filter(function() {
-    if ($(this).data("TearDownWalls_feed")!=comments["feed"]) return false;
+    if ($(this).data("TearDownWalls_connection")!=comments["connection"]) return false;
     if ($(this).data("TearDownWalls_id")!=comments["id"]) return false;
     return true;
   });
@@ -392,17 +391,24 @@ function request_posts(max_request) {
 
   // send message to main to get posts
   if (request) {
-    self.port.emit("request-posts", request, 2, start_date);
+    self.port.emit("request-posts", user.url, request, 2, start_date);
   }
 }
 
 self.port.on("start", function(is_tab) {
   if (!is_tab) return; // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=777632
 
+  // only for certain users
+  user = get_user();
+  if (!user || !self.options.account_data[user.url]) return;
+
+  //
+  crossposting = self.options.account_data[user.url].crossposting;
+
   if (!jQuery(post_selector).length) return; // only if this site contains a posts section
 
   // get data
-  var data = self.options.data;
+  var data = self.options.site_data;
 
   // spawn page worker if we have no recent template
   var now = Math.round(new Date().getTime() / 1000);
@@ -449,10 +455,6 @@ self.port.on("start", function(is_tab) {
   if (data.timeago_locale) {
     jQuery.timeago.settings.strings = data.timeago_locale;
   }
-
-  // get own name and avatar url
-  own_name = jQuery("#pagelet_welcome_box").text();
-  own_avatar = jQuery("#pagelet_welcome_box img").attr("src");
 
   // convert to jquery object
   post_template = jQuery(post_template);

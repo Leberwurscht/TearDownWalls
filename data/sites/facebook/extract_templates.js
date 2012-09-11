@@ -682,7 +682,7 @@ function get_post_template(handler) {
 self.port.on("start", function() {
   // do nothing if we already have a recent template
   var now = Math.round(new Date().getTime() / 1000);
-  if ( self.options.last_extract > now - 3600*24*5 ) return;
+  if ( self.options.site_data.last_extract > now - 3600*24*5 ) return;
 
   // extract language, needed for localization of jquery.timeago.js
   var lang = jQuery("html").attr("lang").toLowerCase();
@@ -699,24 +699,6 @@ self.port.on("start", function() {
         "../../get_timeago_locale.js"
       ]
   });
-
-  // get identity
-  if (!self.options.data.identities) self.options.data.identities = {};
-  var identities = self.options.data.identities;
-  own_url = jQuery("#pagelet_welcome_box a").attr("href");
-  own_name = jQuery("#pagelet_welcome_box").text();
-  own_avatar = jQuery("#pagelet_welcome_box img").attr("src");
-  own_url = convert_to_absolute(own_url);
-  own_avatar = convert_to_absolute(own_avatar);
-
-  if (own_url) {
-    identities[own_url] = {
-      "name": own_name,
-      "avatar": own_avatar
-    };
-  }
-
-  self.port.emit("set-data", { "identities": identities });
 
   // extract templates
   console.log("extracting templates");

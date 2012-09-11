@@ -19,6 +19,9 @@ function list($sites, sites, select) { // sites = [account1, account2, ...], acc
       if (select) {
         var $radio = jQuery('<input type="radio" name="account">');
         $radio.val(account.url);
+        $radio.data("site", site);
+        $radio.data("avatar", account.avatar);
+        $radio.data("name", account.name);
         $account.append($radio);
       }
 
@@ -82,10 +85,23 @@ function list($sites, sites, select) { // sites = [account1, account2, ...], acc
 
     $sites.append($site);
   }
+
+  $sites.find("input[type=radio]:visible:first").attr("checked", "checked");
 }
 
 self.port.on("currently-logged-in", function(site, account) {
+  if (!jQuery(".radio:visible").length) {
+    jQuery("#site_"+site).find(".radio").attr("checked","checked");
+  }
+
   jQuery("#site_"+site).find(".radio, .avatar, .name").show();
+
+  var $radio = jQuery("#site_"+site+" .radio")
+  $radio.val(account.url);
+  $radio.data("site", site);
+  $radio.data("avatar", account.avatar);
+  $radio.data("name", account.name);
+
   jQuery("#site_"+site+" .avatar").attr("src", account.avatar);
   jQuery("#site_"+site+" .name").text(account.name);
   jQuery("#site_"+site+" .login").text("login as other user");
