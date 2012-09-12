@@ -450,7 +450,9 @@ self.port.on("start", function(is_tab) {
   post_template = jQuery(post_template);
 
   // insert crosspost checkbox
-  inject_crosspost();
+  if (self.options.crosspost_accounts.indexOf(user.identifier) != -1) {
+    inject_crosspost();
+  }
 
   // listen for new native posts, into which we need to inject our posts again
   var parent_element = jQuery(post_selector).parent().get(0);

@@ -5,7 +5,11 @@ first version
 * extract templates when connecting DONE
 * display login page if no identity known for a site DONE
 * normalize profile url DONE
-* error if no target configured and toplevel message is sent
+* make crosspost_accounts work DONE
+* change mouse pointer when crosspost image is hovered
+* dialog: make connection to ...<- not displayed
+* dialog: hide field if logged in user is equal
+* exception when opening dialog
 * check if item_store can introduce malformed html
 * likes
 * save everything in database
