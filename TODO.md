@@ -7,6 +7,7 @@ first version
 * normalize profile url DONE
 * make crosspost_accounts work DONE
 * dialog: make connection to ...<- not displayed DONE
+* max-width:100% for images PARTIALLY DONE
 * change mouse pointer when crosspost image is hovered
 * dialog: hide field if logged in user is equal
 * exception when opening dialog
@@ -18,7 +19,6 @@ first version
 * cleanup: remove very old posts, remove comments without parents
 * api versioning
 * make INJECT_AFTER configurable
-* max-width:100% for images
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
 

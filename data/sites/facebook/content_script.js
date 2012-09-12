@@ -145,6 +145,9 @@ function add_comments(post, comments, remove_existing) {
 
     current_comment = inject_comment;
   });
+
+  // adjust width of images (workaround - max-width: 100% does not seem to work)
+  post.find(".TearDownWalls_comment_content img").css("max-width", jQuery(post_selector).width()+"px");
 }
 
 function inject_posts(posts, remove_existing) {
@@ -290,6 +293,9 @@ function inject_posts(posts, remove_existing) {
     injected_post.data("TearDownWalls_connection", post.connection);
     injected_post.data("TearDownWalls_id", post.id);
     injected_post.data("TearDownWalls_date", post.date);
+
+    // adjust width of images (workaround - max-width: 100% does not seem to work)
+    injected_post.find(".TearDownWalls_content img").css("max-width", jQuery(post_selector).width()+"px");
 
     // inject the post after the current native post
     jQuery(this).after(injected_post);
