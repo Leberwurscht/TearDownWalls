@@ -6,8 +6,8 @@ first version
 * display login page if no identity known for a site DONE
 * normalize profile url DONE
 * make crosspost_accounts work DONE
+* dialog: make connection to ...<- not displayed DONE
 * change mouse pointer when crosspost image is hovered
-* dialog: make connection to ...<- not displayed
 * dialog: hide field if logged in user is equal
 * exception when opening dialog
 * check if item_store can introduce malformed html

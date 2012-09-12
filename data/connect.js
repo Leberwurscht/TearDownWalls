@@ -1,8 +1,13 @@
-self.port.on("query-account", function(type, target, accounts) {
+self.port.on("query-account", function(type, target, title, accounts) {
   if (type && target) {
     jQuery(".can-connect").show();
     jQuery(".cannot-connect").hide();
-    jQuery("#target-name").text(target);
+    if (title) {
+      jQuery("#target").text(title);
+    }
+    else {
+      jQuery("#target").text(target);
+    }
 
     list(jQuery("#accounts"), accounts, true);
 

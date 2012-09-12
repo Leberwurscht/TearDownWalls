@@ -12,20 +12,24 @@ function convert_to_absolute(url){ // http://james.padolsey.com/javascript/getti
 jQuery('link[type="application/atom+xml"]').each(function(){
   var url = jQuery(this).attr("href");
   url = convert_to_absolute(url);
+  var title = jQuery(this).attr("title");
 
   list.push({
     "type": "atom",
-    "url": url
+    "url": url,
+    "title": title
   });
 });
 
 jQuery('link[type="application/teardownwalls_intro"]').each(function(){
   var url = jQuery(this).attr("href");
   url = convert_to_absolute(url);
+  var title = jQuery(this).attr("title");
 
   list.push({
     "type": "intro",
-    "url": url
+    "url": url,
+    "title": title
   });
 });
 
