@@ -401,9 +401,7 @@ function request_posts(max_request) {
   }
 }
 
-self.port.on("start", function(is_tab) {
-  if (!is_tab) return; // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=777632
-
+self.port.on("start", function() {
   // only for certain users
   user = get_user();
   if (!user || !self.options.account_data[user.identifier]) return;

@@ -17,6 +17,19 @@ function get_user() {
 
   if (!own_url) return;
 
+  // spawn page worker if we have no recent template
+  if (jQuery("#home_stream").length) {
+    var data = self.options.site_data;
+    var now = Math.round(new Date().getTime() / 1000);
+    if (!( data.last_extract > now - 3600*24*5 )) {
+      self.port.emit("start-worker", {
+        "url": document.URL,
+        "when": "end",
+        "files": ["../../lib/jquery.js", "extract_templates.js"]
+      });
+    }
+  }
+
   // make identifier from profile url: remove trailing http(s)://*.facebook.com/
   var identifier = own_url.replace(/^https?:\/\//i, "");
   identifier = identifier.replace(/^[^\/]*\.facebook.com\//i, "");
@@ -34,18 +47,5 @@ self.port.on("get-user", function() {
   var user = get_user();
   if (user) {
     self.port.emit("logged-in", user.identifier, user.url, user.avatar, user.name);
-
-    // spawn page worker if we have no recent template
-    if (jQuery("#home_stream").length) {
-      var data = self.options.site_data;
-      var now = Math.round(new Date().getTime() / 1000);
-      if (!( data.last_extract > now - 3600*24*5 )) {
-        self.port.emit("start-worker", {
-          "url": document.URL,
-          "when": "end",
-          "files": ["../../lib/jquery.js", "extract_templates.js"]
-        });
-      }
-    }
   }
 });
