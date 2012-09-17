@@ -10,10 +10,13 @@
     "when": "end",
     "files": ["../../lib/jquery.js", "extract_templates.js"]
   }],
-  "get_logged_in_user": {
+  "relogin": {
+    "url": "https://www.facebook.com/login.php",
+    "files": ["../../lib/jquery.js", "relogin.js", "get_user.js"]
+  },
+  "get_user": {
     "url": "https://www.facebook.com/?sk=nf",
     "when": "end",
     "files": ["../../lib/jquery.js", "get_user.js"]
-  },
-  "login_url": "https://www.facebook.com/login.php"
+  }
 }

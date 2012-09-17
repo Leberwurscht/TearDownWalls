@@ -30,13 +30,13 @@ function get_user() {
   };
 }
 
-jQuery(document).ready(function() {
+self.port.on("get-user", function() {
   var user = get_user();
   if (user) {
     self.port.emit("logged-in", user.identifier, user.url, user.avatar, user.name);
 
     // spawn page worker if we have no recent template
-    if (jQuery(post_selector).length) {
+    if (jQuery("#home_stream").length) {
       var data = self.options.site_data;
       var now = Math.round(new Date().getTime() / 1000);
       if (!( data.last_extract > now - 3600*24*5 )) {

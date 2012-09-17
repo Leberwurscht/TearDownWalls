@@ -47,10 +47,9 @@ Interface between main code and content scripts
 * per-site and per-account data is available in content script under self.options.site_data and self.options.account_data
 * self.option.crosspost_accounts is a list of accounts for which a crossposting target is configured. Can be used to show/hide a crosspost button.
 * self.options.exposed can be used to access files under the data/sites/SITE_NAME/ folder
-* The page mods and page workers for a specific walled garden communicate with lib/main.js over a well-defined interface by exchanging messages.
+* The page mods and page workers (as listed in data/sites/SITE_NAME/configuration.json) for a specific walled garden communicate with lib/main.js over a well-defined interface by exchanging messages.
     * In content scripts, self.options.data and self.options.exposed is defined, where self.options.exposed contains the resource URLs of the files given by the expose property in configuration.js.
     * The content scripts may send the following messages:
-	* logged-in(account_identifier, profile_url, avatar_url, name) should be sent if a user is logged in
         * request-posts(account, posts, comments, start_date) requests the 'posts' newest toplevel posts, each with the 'comments' most recent comments, that are newer than start_date. 'account' is the account identifier for which we want to get the posts.
         * request-comments(connection, id, max_comments) requests the 'max_comments' newest comments for a post specified by connection and post id
         * send-item(account, item) where item has properties title, content, and optionally both in_reply_to and feed: sent when a post was composed within the walled garden which should also be sent to the federated social web
@@ -59,9 +58,12 @@ Interface between main code and content scripts
         * log(message, level) can be used to log errors.
         * start-worker(config) can be used to start a page worker. Format of config object is as in configuration.json.
         * terminate() tells the main code to destroy the content script.
-    * The content script may or should react to the following messages:
-        * start(is_tab). The content script should not do anything until it receives this message. is_tab indicates whether the script is run inside a tab (as opposed to a page worker) and can be used as a workaround until https://bugzilla.mozilla.org/show_bug.cgi?id=777632 is fixed in a stable release of the addon builder.
-	* log-out(). Logs out the currently logged in user. Either this message or start is received.
+    * The content script may or should react to the following messages - and page mod scripts should not do anything until they receive one of them (necessary to work around https://bugzilla.mozilla.org/show_bug.cgi?id=777632):
+	* log-out(). Content script should log out the currently logged in user.
+        * start(). The content script should get the currently logged in user (like get-user), setup crossposting, and inject posts.
         * transmit-data(data, account) in response to request-data; transmits the data that was set using set-data earlier. account may be null.
         * transmit-posts(posts) in response to request-posts where posts is an array of toplevel posts. Each toplevel post has the properties feed, id, author, avatar, date, title, content, sub_items, sub_items_complete. sub_items is an array of comments. Each comment has the properties feed, id, author, avatar, date, title, content.
         * transmit-comments(post) in response to request-comments where post is an object with the properties feed, id, sub_items, subitems_complete. sub_items has the same format as in transmit-items.
+* configuration.json must include
+	* configuration for a page worker 'get_user', which must emit a logged-in(account_identifier, url, avatar, name) message in response to a get-user() message. Additionally, the page worker is supplied with the same interface as described above(TODO).
+	* configuration for a page mod 'relogin', which must log out the user on a log-out() message, redirect to a login form on a redirect() message, and must emit a logged-in(account_identifier, url, avatar, name) message in response to a get-user() message. Additionally, the page mod is supplied with the same interface as described above(TODO).
