@@ -14,7 +14,7 @@ var post_template = ''+
   '  <div style="margin-left: 60px;">'+
   '    <p><a class="TearDownWalls_author" style="font-weight:bold;"></a><br /></p>'+
   '    <p class="TearDownWalls_content"></p>'+
-  '    <span class="TearDownWalls_date" style="color:#aaa;"></span>'+
+  '    <a class="TearDownWalls_like_button">like this</a> <span class="TearDownWalls_date" style="color:#aaa;"></span>'+
   '    <span class="TearDownWalls_show_all"><hr /><a>(show all)</a></span>'+
   '    <span>'+
   '      <div class="TearDownWalls_comment" style="clear:both;">'+
@@ -101,6 +101,10 @@ function apply_class_diff(dom, diff, reverse) {
   }
 }
 
+function add_like(post, like) {
+  console.log("LIKE: "+JSON.stringify(like)); // TODO
+}
+
 function add_comments(post, comments, remove_existing) {
   // get existing comments
   var existing_comments = post.find(".TearDownWalls_comment");
@@ -118,6 +122,12 @@ function add_comments(post, comments, remove_existing) {
   var current_comment = post.find(".TearDownWalls_comment").last();
 
   jQuery.each(comments, function(index, comment) {
+    // treat likes
+    if (comment.verb=="http://activitystrea.ms/schema/1.0/like") {
+      add_like(post, comment);
+      return true;
+    }
+
     var inject_comment = comment_template.clone().show();
 
     // set avatar
@@ -177,12 +187,19 @@ function inject_posts(posts, remove_existing) {
     if (!( next_injected_index < next_native_index )) return true;
 
     // get the post that should be injected, incrementing post_index
-    var post = posts[post_index];
-    post_index++;
-    injected_so_far++;
+    while (true) {
+      // get one post
+      var post = posts[post_index];
+      post_index++;
 
-    // terminate if no more posts are available
-    if (!post) return false;
+      // terminate if no more posts are available
+      if (!post) return false;
+
+      // keep trying until we get a real post
+      if (post.verb != "http://activitystrea.ms/schema/1.0/like") break; // skip only likes
+    }
+
+    injected_so_far++;
 
     // construct the post that should be injected
     var injected_post = post_template.clone();
@@ -224,6 +241,13 @@ function inject_posts(posts, remove_existing) {
       event.preventDefault()
 
       self.port.emit("request-comments", post.connection, post.id);
+    });
+
+    // add callback for like button - TODO: hide if commenting not possible
+    injected_post.find(".TearDownWalls_like_button").click(function(event) {
+      event.preventDefault();
+
+      self.port.emit("like-item", post.id, [post.connection]);
     });
 
     // jquery.autosize.js for growing textareas

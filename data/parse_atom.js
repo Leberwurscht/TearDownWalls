@@ -120,7 +120,8 @@ self.port.on("request-entries", function(xml) {
       "in_reply_to": in_reply_to,
       "date": date,
       "title": title,
-      "content": content
+      "content": content,
+      "verb": verb
     };
   }
 

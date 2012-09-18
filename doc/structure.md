@@ -53,6 +53,7 @@ Interface between main code and content scripts
         * request-posts(account, posts, comments, start_date) requests the 'posts' newest toplevel posts, each with the 'comments' most recent comments, that are newer than start_date. 'account' is the account identifier for which we want to get the posts.
         * request-comments(connection, id, max_comments) requests the 'max_comments' newest comments for a post specified by connection and post id
         * send-item(account, item) where item has properties title, content, and optionally both in_reply_to and feed: sent when a post was composed within the walled garden which should also be sent to the federated social web
+        * like-item(item_id, connections) to send a like
         * set-data(data, account) can be used if the content scripts need to store data. account may be null for data that is not account-specific (e.g. templates).
         * request-data(account) re-requests the stored data. data is also made available to content scripts over self.options.data, but might be out of date (?). account may be null.
         * log(message, level) can be used to log errors.

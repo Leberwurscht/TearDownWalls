@@ -9,10 +9,10 @@ first version
 * dialog: make connection to ...<- not displayed DONE
 * max-width:100% for images PARTIALLY DONE
 * exception when opening dialog DONE
+* likes
 * change mouse pointer when crosspost image is hovered
 * dialog: hide field if logged in user is equal
 * check if item_store can introduce malformed html
-* likes
 * save everything in database
 * fix avatar class
 * crossposting also if you have a friendica account
@@ -30,6 +30,7 @@ try to port to chrome
 next versions
 =============
 
+* comment likes, unlike
 * reshare button
 * use favicon as avatar for feeds
 * order posts by time

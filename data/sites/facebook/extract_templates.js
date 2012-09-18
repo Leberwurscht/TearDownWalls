@@ -519,6 +519,9 @@ function get_post_template(handler) {
       $comment_field_avatar = jQuery([]);
     }
 
+    // find like button
+    var $like_button = $post.find("[name=like]");
+
     // rate template: count how many fallbacks we need
     var rating = 0;
 
@@ -533,6 +536,8 @@ function get_post_template(handler) {
     if (!$comment_author.length) rating -= 1;
     /* not necessary to check comment date */
     if (!$comment_content.length) rating -= 1;
+
+    if (!$like_button.length) rating -= 1;
 
     /* not necessary to check comment field */
     /* do not care about comment image */
@@ -576,6 +581,19 @@ function get_post_template(handler) {
       return true;
     }
 
+    if (!$like_button.length) {
+      $like_button = jQuery('<a>like this</a>');
+
+      if ($date.parents("a:first").length) {
+        $date.parents("a:first").after(" ");
+        $date.parents("a:first").after($like_button);
+      }
+      else {
+        $date.after(" ");
+        $date.after($like_button);
+      }
+    }
+
     // set markers
     $post.addClass("TearDownWalls_post");
     $avatar.addClass("TearDownWalls_avatar");
@@ -590,6 +608,7 @@ function get_post_template(handler) {
     $comment_content.addClass("TearDownWalls_comment_content");
     $comment_field_avatar.addClass("TearDownWalls_comment_field_avatar");
     $comment_field.addClass("TearDownWalls_comment_field");
+    $like_button.addClass("TearDownWalls_like_button");
 
     best_rating = rating;
     $best_template = $post;
@@ -652,17 +671,39 @@ function get_post_template(handler) {
     $show_all_elements.removeAttr("name"); // disable form elements
     $show_all_elements.removeAttr("href"); // disable links
     $show_all_elements.removeAttr("data-ft"); // remove data
+    $show_all_elements.removeAttr("onclick");
     $show_all_elements.val(function(index,value){ if (value) return value.replace(/[0-9]+\s*/,""); }); // remove comment count
     $show_all_elements.text(function(index,text){ if (text) return text.replace(/[0-9]+\s*/,""); }); // remove comment count
+
+    // save like button completely before cleanup
+    var $like = $best_template.find(".TearDownWalls_like_button").clone();
+    var $like_elements = $like.find("*").andSelf();
+    $like_elements.removeAttr("name"); // disable form elements
+    $like_elements.removeAttr("href"); // disable links
+    $like_elements.removeAttr("onclick");
+    $like_elements.removeAttr("data-ft"); // remove data
+
+    // save separator after like
+    var node_after_button = $best_template.find(".TearDownWalls_like_button").get(0).nextSibling;
+    if (node_after_button && node_after_button.nodeType == 3) {
+      var like_separator = node_after_button.nodeValue.match(/[^a-zA-Z0-9]*/);
+    }
+    else {
+      var like_separator = "";
+    }
 
     // save comment field placeholder before cleanup
     var placeholder = $best_template.find(".TearDownWalls_comment_field").val();
 
     // extract the template from the prototype
-    transform_to_template($best_template, [".TearDownWalls_avatar", ".TearDownWalls_author", ".TearDownWalls_date", ".TearDownWalls_content", ".TearDownWalls_show_all", ".TearDownWalls_comment_avatar", ".TearDownWalls_comment_author", ".TearDownWalls_comment_date", ".TearDownWalls_comment_content", ".TearDownWalls_comment_field_avatar", ".TearDownWalls_comment_field"]);
+    transform_to_template($best_template, [".TearDownWalls_avatar", ".TearDownWalls_author", ".TearDownWalls_date", ".TearDownWalls_content", ".TearDownWalls_show_all", ".TearDownWalls_comment_avatar", ".TearDownWalls_comment_author", ".TearDownWalls_comment_date", ".TearDownWalls_comment_content", ".TearDownWalls_comment_field_avatar", ".TearDownWalls_comment_field", ".TearDownWalls_like_button"]);
 
     // replace show all with saved and processed version
     $best_template.find(".TearDownWalls_show_all").replaceWith($show_all);
+
+    // replace like button with saved and processed version
+    $best_template.find(".TearDownWalls_like_button").replaceWith($like);
+    $best_template.find(".TearDownWalls_like_button").after(document.createTextNode(like_separator));
 
     // reinsert placeholder
     $best_template.find(".TearDownWalls_comment_field").attr("title", placeholder);
