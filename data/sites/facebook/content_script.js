@@ -202,7 +202,7 @@ function add_comments(post, comments, remove_existing) {
   }
 
   // adjust width of images (workaround - max-width: 100% does not seem to work)
-  post.find(".TearDownWalls_comment_content img").css("max-width", jQuery(post_selector).width()*.8+"px");
+  post.find(".TearDownWalls_comment_content img").css("max-width", (jQuery(post_selector).width()*.8 - 65)+"px");
 }
 
 function inject_posts(posts, remove_existing) {
@@ -283,7 +283,7 @@ function inject_posts(posts, remove_existing) {
 
     // add callback for show all
     injected_post.find(".TearDownWalls_show_all").click(function(event) {
-      event.preventDefault()
+      event.preventDefault();
 
       self.port.emit("request-comments", post.connection, post.id);
     });

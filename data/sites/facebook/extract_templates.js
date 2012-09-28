@@ -10,7 +10,7 @@ var checkbox_selector = "#pagelet_composer #composerTourAudience";
 var submit_selector = "#pagelet_composer form[action*=updatestatus] input[type=submit]";
 var textarea_selector = "#pagelet_composer form[action*=updatestatus] textarea";
 var comment_field_selected_diff = {
-  ".mainWrapper form > div > ul.uiList":["+child_is_active"]
+  ".mainWrapper form > div > ul.uiList":["+child_is_active"] // TODO: remove
 };
 
 // This helper function cleans up a DOM subtree by only retaining specified elements and the paths upwards.
@@ -564,6 +564,7 @@ function get_post_template(handler) {
     }
 
     // find toplevel author: a text-only link, not inside a comment, with same URL as avatar
+    // this could also match a link in the like list, but we exclude posts with more than one match
     var avatar_url = $avatar.closest("a").attr("href");
 
     var $author = $post.find('a[href="'+avatar_url+'"]').filter(function() {
@@ -854,8 +855,8 @@ function get_post_template(handler) {
     var $show_all_elements = $show_all.find("*").andSelf();
     $show_all_elements.removeAttr("name"); // disable form elements
     $show_all_elements.removeAttr("href"); // disable links
-    $show_all_elements.removeAttr("data-ft"); // remove data
-    $show_all_elements.removeAttr("onclick");
+    $show_all_elements.removeAttr("data-ft"); // TODO: data-*
+    $show_all_elements.removeAttr("onclick"); // TODO: on*
     $show_all_elements.val(function(index,value){ if (value) return value.replace(/[0-9]+\s*/,""); }); // remove comment count
     $show_all_elements.text(function(index,text){ if (text) return text.replace(/[0-9]+\s*/,""); }); // remove comment count
 
