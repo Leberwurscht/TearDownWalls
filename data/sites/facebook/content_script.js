@@ -15,6 +15,8 @@ var post_template = ''+
   '    <p><a class="TearDownWalls_author" style="font-weight:bold;"></a><br /></p>'+
   '    <p class="TearDownWalls_content"></p>'+
   '    <a class="TearDownWalls_like_button">like this</a> <span class="TearDownWalls_date" style="color:#aaa;"></span>'+
+  '    <span><hr /><div class="TearDownWalls_like_symbol"></div></span>'+
+  '    <span class="TearDownWalls_like_list"></span>'+
   '    <span class="TearDownWalls_show_all"><hr /><a>(show all)</a></span>'+
   '    <span>'+
   '      <div class="TearDownWalls_comment" style="clear:both;">'+
@@ -40,6 +42,13 @@ var submit_selector = "#pagelet_composer form[action*=updatestatus] input[type=s
 var textarea_selector = "#pagelet_composer form[action*=updatestatus] textarea";
 var comment_field_selected_diff = {
   ".mainWrapper form > div > ul.uiList":["+child_is_active"]
+};
+var like_list_tpl_singular = '<hr /><a class="TearDownWalls_like_list_item"></a> likes this.<br />';
+var like_list_tpl_plural = '<hr /><a class="TearDownWalls_like_list_item"></a> like this.<br />';
+var like_list_text_plural = {
+  collapsed: "5 others",
+  separator: ", ",
+  last_separator: " and "
 };
 
 // to setup DOM MutationObserver (or Mutation Events as fallback for older browsers) when new native posts appear (when user scrolls down)
@@ -101,10 +110,6 @@ function apply_class_diff(dom, diff, reverse) {
   }
 }
 
-function add_like(post, like) {
-  console.log("LIKE: "+JSON.stringify(like)); // TODO
-}
-
 function add_comments(post, comments, remove_existing) {
   // get existing comments
   var existing_comments = post.find(".TearDownWalls_comment");
@@ -120,11 +125,12 @@ function add_comments(post, comments, remove_existing) {
 
   // add the new comments, each after the previous
   var current_comment = post.find(".TearDownWalls_comment").last();
+  var likes = [];
 
   jQuery.each(comments, function(index, comment) {
     // treat likes
     if (comment.verb=="http://activitystrea.ms/schema/1.0/like") {
-      add_like(post, comment);
+      likes.push(comment);
       return true;
     }
 
@@ -155,6 +161,45 @@ function add_comments(post, comments, remove_existing) {
 
     current_comment = inject_comment;
   });
+
+  // add like list
+  var $like_list = post.find(".TearDownWalls_like_list");
+
+  if (likes.length==1) {
+    var $ll = like_list_tpl_singular.clone();
+    var $item = $ll.find(".TearDownWalls_like_list_item");
+    $item.text(likes[0].author);
+
+    $like_list.replaceWith(jQuery($ll.wrap("<div>").parent().html())); // strange: $like_list.replaceWith($ll) does not work
+  }
+  else if (likes.length>1) {
+    var $ll = like_list_tpl_plural.clone();
+
+    var $item = $ll.find(".TearDownWalls_like_list_item");
+    $item.text(likes[0].author);
+
+    for (var i=1; i<likes.length-1; i++) {
+      var like = likes[i];
+
+      var $last_item = $ll.find(".TearDownWalls_like_list_item:last");
+      var $item = $last_item.clone();
+
+      $item.text(like.author);
+
+      $last_item.after($item);
+      $item.before(like_list_text_plural.separator);
+    }
+
+    var $last_item = $ll.find(".TearDownWalls_like_list_item:last");
+    var $item = $last_item.clone();
+
+    $item.text(likes[likes.length-1].author);
+
+    $last_item.after($item);
+    $item.before(like_list_text_plural.last_separator);
+
+    $like_list.replaceWith(jQuery($ll.wrap("<div>").parent().html()));
+  }
 
   // adjust width of images (workaround - max-width: 100% does not seem to work)
   post.find(".TearDownWalls_comment_content img").css("max-width", jQuery(post_selector).width()*.8+"px");
@@ -469,13 +514,26 @@ self.port.on("start", function() {
     comment_field_selected_diff = data.comment_field_selected_diff;
   }
 
+  // overwrite fallback like list templates if extract_templates.js was successful
+  if (data.like_list_tpl_singular) {
+    like_list_tpl_singular = data.like_list_tpl_singular;
+  }
+  if (data.like_list_tpl_plural) {
+    like_list_tpl_plural = data.like_list_tpl_plural;
+  }
+  if (data.like_list_text_plural) {
+    like_list_text_plural = data.like_list_text_plural;
+  }
+
   // set timeago locale if we have one
   if (data.timeago_locale) {
     jQuery.timeago.settings.strings = data.timeago_locale;
   }
 
-  // convert to jquery object
+  // convert to jquery objects
   post_template = jQuery(post_template);
+  like_list_tpl_singular = jQuery(like_list_tpl_singular);
+  like_list_tpl_plural = jQuery(like_list_tpl_plural);
 
   // insert crosspost checkbox
   if (self.options.crosspost_accounts.indexOf(user.identifier) != -1) {
