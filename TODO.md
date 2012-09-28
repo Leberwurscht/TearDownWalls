@@ -9,7 +9,10 @@ first version
 * dialog: make connection to ...<- not displayed DONE
 * max-width:100% for images PARTIALLY DONE
 * exception when opening dialog DONE
-* likes
+* display like lists DONE
+* show_all not working
+* like should appear immediately
+* avoid multiple likes?
 * change mouse pointer when crosspost image is hovered
 * dialog: hide field if logged in user is equal
 * check if item_store can introduce malformed html
@@ -21,6 +24,7 @@ first version
 * make INJECT_AFTER configurable
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
+* expert mode (checkbox in configuration): display log, edit config json, queue sizes
 
 try to port to chrome
 =====================
@@ -30,6 +34,7 @@ try to port to chrome
 next versions
 =============
 
+* crossposted posts appear twice in facebook, combine them. perhaps: try to synchronize comments?
 * comment likes, unlike
 * reshare button
 * use favicon as avatar for feeds
