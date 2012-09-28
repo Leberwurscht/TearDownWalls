@@ -146,6 +146,16 @@ function convert_to_absolute(url){ // http://james.padolsey.com/javascript/getti
   return url;
 }
 
+function is_profile_link() { // used in jQuery's filter method to get only profile links (has false negatives and hopefully no false positives)
+  var href = jQuery(this).attr("href");
+  if (!href) return false;
+  if (href.indexOf("/profile.php")!=-1 && href.indexOf("and=")==-1) return true;
+  if (href.match(/\.php$/)) return false;
+  if (href.match(/facebook.com\/[a-zA-Z0-9.]*\.[a-zA-Z0-9.]*$/)) return true;
+
+  return false;
+}
+
 function get_checkbox_template() {
   // TODO: find out checkbox selector using common parent element of input[type=submit] and select
   var select = "select";
@@ -196,12 +206,7 @@ function get_post_template(handler) {
 
   if (!posts.find(avatar_selector+":first").length) { // if this selector does not work, try another method:
     // get most abundant classes from images linking to profiles
-    var images_with_link = posts.find("a").filter(function() {
-      var href = jQuery(this).attr("href");
-      if (!href) return false;
-      if (href.indexOf("/profile.php")!=-1 && href.indexOf("and=")==-1) return true;
-      if (href.match(/facebook.com\/[a-zA-Z0-9]*\.[a-zA-Z0-9]*$/)) return true;
-    }).find("img");
+    var images_with_link = posts.find("a").filter(is_profile_link).find("img");
     var candidate = most_abundant_classes(images_with_link);
 
     if (!candidate) {
