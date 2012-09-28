@@ -176,6 +176,66 @@ function get_checkbox_template() {
   return checkbox_template;
 }
 
+function get_like_button($post) {
+  var $like_button = $post.find("[name=like]");
+  if ($like_button.length>1) {
+    self.port.emit("log", "more than one element with name=like", 0);
+    $like_button = jQuery([]);
+  }
+
+  return $like_button;
+}
+
+function get_like_list($post, date_selector) {
+  $like_button = get_like_button($post);
+
+  // find like list - first try to find like symbol (TODO: or browse likes link)
+  var like_title = $like_button.attr("title");
+  var $like_symbol = jQuery([]);
+  $like_symbol = $post.find(".uiUfiLikeIcon"); // try class
+  if (!$like_symbol.length && like_title) { // try to get like symbol by title
+    $like_symbol = $post.find('[title="'+like_title+'"]').not($like_button);
+
+    if ($like_symbol.length>1) {
+      self.port.emit("log", "more than one element has same title as like button", 0);
+      $like_symbol = jQuery([]);
+    }
+    else if ($like_symbol.length==1) {
+      self.port.emit("log", "used title method to get like symbol", 0);
+    }
+  }
+  if (!$like_symbol.length) { // try to get like symbol by onclick
+    var $like_symbol = $post.find("*").filter(function() {
+      var onclick = jQuery(this).attr("onclick");
+      if (!onclick) return false;
+      return onclick.indexOf("form.like.click") != -1;
+    }).not($like_button);
+
+    if ($like_symbol.length>1) {
+      self.port.emit("log", "more than one element has onclick~=form.like.click", 0);
+      $like_symbol = jQuery([]);
+    }
+    else if ($like_symbol.length==1) {
+      self.port.emit("log", "used onclick method to get like symbol", 0);
+    }
+  }
+
+  // get at least one link that belongs to the like symbol (and not to a comment or to the post)
+  // so we get the like list
+  var symbol_parent = $like_symbol.get(0);
+  var $like_list = jQuery([]);
+  while (symbol_parent && (symbol_parent = symbol_parent.parentNode)) {
+    if (jQuery(symbol_parent).has(date_selector).length) break;
+
+    if (jQuery(symbol_parent).find("a").filter(is_profile_link).length) {
+      $like_list = jQuery(symbol_parent);
+      break;
+    }
+  }
+
+  return $like_list;
+}
+
 function get_post_template(handler) {
   /* A good template must contain the following elements:
       * avatar
@@ -250,6 +310,109 @@ function get_post_template(handler) {
         date_selector = candidate;
     }
   }
+
+  // === try to get a like list template ===
+  var $like_list_tpl_singular;
+  var $like_list_tpl_plural;
+  var like_list_text_plural;
+
+  jQuery("#home_stream > *").each(function() {
+    var $this = jQuery(this);
+    $like_list = get_like_list($this, date_selector);
+    // analyze like list to extract like list templates
+    // X likes this
+    // X and X like this
+    // X, X and X like this
+    // X, X, X and 15... like this
+    var like_count = $like_list.find("a").filter(is_profile_link).length;
+    var $collapsed = $like_list.find("a").filter(function() {
+      var href = jQuery(this).attr("href");
+      if (!href) return;
+
+      return href.indexOf("/browse/likes/") != -1;
+    });
+
+    if (like_count==1 && !$collapsed.length && !$like_list_tpl_singular) { // singular
+      var $ll = $like_list.clone(); // do not alter the dom
+      var $ll_elements = $ll.find("*");
+      $ll_elements.removeAttr("name"); // disable form elements
+      $ll_elements.removeAttr("href"); // disable links
+      $ll_elements.removeAttr("data-hovercard"); // remove data
+      $ll_elements.removeAttr("onclick"); // TODO: on*
+
+      var $a = $ll.find("a").filter(function() { // get text-only links
+        return jQuery(this).children().length==0;
+      });
+
+      if ($a.length>1) {
+        self.port.emit("log", "multiple text-only links in singular like list", 0);
+        return true;
+      }
+
+      $a.addClass("TearDownWalls_like_list_item");
+
+      $like_list_tpl_singular = $ll;
+    }
+    else if (like_count>1 && $collapsed.length && !$like_list_tpl_plural) { // plural
+      var $ll = $like_list.clone(); // do not alter the dom
+      var $ll_elements = $ll.find("*");
+      $ll_elements.removeAttr("name"); // disable form elements
+      $ll_elements.removeAttr("href"); // disable links
+      $ll_elements.removeAttr("data-hovercard"); // remove data
+      $ll_elements.removeAttr("onclick"); // TODO: on*
+
+      var $a = $ll.find("a").filter(function() { // get text-only links
+        return jQuery(this).children().length==0 && !!jQuery(this).text();
+      });
+
+      var $first = $a.first();
+      $first.addClass("TearDownWalls_like_list_item");
+
+      // get separator
+      var $content = $first.parent().contents();
+      var start_index = $content.index($first)
+      var stop_index = $content.index($a.get(1))
+      var separator = $content.slice(start_index+1, stop_index).text();
+
+      // get separator for last element
+      var $content = $a.last().parent().contents();
+      var start_index = $content.index($a.slice(-2,-1));
+      var stop_index = $content.index($a.last());
+      var last_separator = $content.slice(start_index+1, stop_index).text();
+
+      // delete everything from first to last
+      var $content = $a.first().parent().contents();
+      var start_index = $content.index($first);
+      var $last = $a.last()
+      var stop_index = $content.index($last);
+      $content.slice(start_index+1, stop_index).remove();
+      $last.remove();
+
+      // get collapsed text
+      var collapsed_text = $collapsed.text();
+
+      $like_list_tpl_plural = $ll;
+      like_list_text_plural = {
+        collapsed: collapsed_text,
+        separator: separator,
+        last_separator: last_separator
+      };
+    }
+
+    if ($like_list_tpl_singular && $like_list_tpl_plural) {
+      return false;
+    }
+
+    /*
+    find browse/likes/ link; alternative: profile links
+    find uiUfiLikeIcon uiUfi / onclick~=form.like.click / same title as like button (if like button has title)
+    find common parent
+
+    */
+  });
+
+  $like_list_tpl_singular.addClass("TearDownWalls_like_list");
+  $like_list_tpl_plural.addClass("TearDownWalls_like_list");
 
   // === Second: Filter out posts that do not have required elements (at least not visible) ===
 
@@ -507,6 +670,10 @@ function get_post_template(handler) {
       return true;
     }
 
+    // find like button and list
+    $like_button = get_like_button($post);
+    $like_list = get_like_list($post, date_selector);
+
     // find comment content
     var $comment_content = $post.find(".commentBody"); /* first guess - TODO: fallback: most abundant class name of elements containing common emoticons */
     if ($comment_content.length>1) {
@@ -524,9 +691,6 @@ function get_post_template(handler) {
       $comment_field_avatar = jQuery([]);
     }
 
-    // find like button
-    var $like_button = $post.find("[name=like]");
-
     // rate template: count how many fallbacks we need
     var rating = 0;
 
@@ -543,6 +707,7 @@ function get_post_template(handler) {
     if (!$comment_content.length) rating -= 1;
 
     if (!$like_button.length) rating -= 1;
+    if (!$like_list.length) rating -= 1;
 
     /* not necessary to check comment field */
     /* do not care about comment image */
@@ -599,6 +764,19 @@ function get_post_template(handler) {
       }
     }
 
+    if (!$like_list.length) {
+      $like_list = jQuery('<div>');
+
+      if ($date.parents("a:first").length) {
+        $date.parents("a:first").after(" ");
+        $date.parents("a:first").after($like_list);
+      }
+      else {
+        $date.after(" ");
+        $date.after($like_list);
+      }
+    }
+
     // set markers
     $post.addClass("TearDownWalls_post");
     $avatar.addClass("TearDownWalls_avatar");
@@ -614,6 +792,7 @@ function get_post_template(handler) {
     $comment_field_avatar.addClass("TearDownWalls_comment_field_avatar");
     $comment_field.addClass("TearDownWalls_comment_field");
     $like_button.addClass("TearDownWalls_like_button");
+    $like_list.addClass("TearDownWalls_like_list");
 
     best_rating = rating;
     $best_template = $post;
@@ -688,7 +867,7 @@ function get_post_template(handler) {
     $like_elements.removeAttr("onclick");
     $like_elements.removeAttr("data-ft"); // remove data
 
-    // save separator after like
+    // save separator after like button
     var node_after_button = $best_template.find(".TearDownWalls_like_button").get(0).nextSibling;
     if (node_after_button && node_after_button.nodeType == 3) {
       var like_separator = node_after_button.nodeValue.match(/[^a-zA-Z0-9]*/);
@@ -701,7 +880,7 @@ function get_post_template(handler) {
     var placeholder = $best_template.find(".TearDownWalls_comment_field").val();
 
     // extract the template from the prototype
-    transform_to_template($best_template, [".TearDownWalls_avatar", ".TearDownWalls_author", ".TearDownWalls_date", ".TearDownWalls_content", ".TearDownWalls_show_all", ".TearDownWalls_comment_avatar", ".TearDownWalls_comment_author", ".TearDownWalls_comment_date", ".TearDownWalls_comment_content", ".TearDownWalls_comment_field_avatar", ".TearDownWalls_comment_field", ".TearDownWalls_like_button"]);
+    transform_to_template($best_template, [".TearDownWalls_avatar", ".TearDownWalls_author", ".TearDownWalls_date", ".TearDownWalls_content", ".TearDownWalls_show_all", ".TearDownWalls_comment_avatar", ".TearDownWalls_comment_author", ".TearDownWalls_comment_date", ".TearDownWalls_comment_content", ".TearDownWalls_comment_field_avatar", ".TearDownWalls_comment_field", ".TearDownWalls_like_button", ".TearDownWalls_like_list"]);
 
     // replace show all with saved and processed version
     $best_template.find(".TearDownWalls_show_all").replaceWith($show_all);
@@ -716,7 +895,7 @@ function get_post_template(handler) {
     $best_template.find(".TearDownWalls_comment_field").val(placeholder);
 
     // call handler now that we are done
-    handler($best_template, complete_diff);
+    handler($best_template, $like_list_tpl_singular, $like_list_tpl_plural, like_list_text_plural, complete_diff);
   });
 
   // dispatch focus event for comment field
@@ -748,17 +927,22 @@ self.port.on("start", function() {
 
   // extract templates
   console.log("extracting templates");
-  get_post_template(function($post_template, comment_field_selected_diff) {
+  get_post_template(function($post_template, $like_list_tpl_singular, $like_list_tpl_plural, like_list_text_plural, comment_field_selected_diff) {
     var html_post = $post_template.wrap("<div>").parent().html();
 
     var $checkbox_template = get_checkbox_template();
     var html_checkbox = $checkbox_template.wrap("<div>").parent().html();
+    var html_like_list_singular = $like_list_tpl_singular.wrap("<div>").parent().html();
+    var html_like_list_plural = $like_list_tpl_plural.wrap("<div>").parent().html();
 
     console.log("all templates extracted and processed");
 
     self.port.emit("set-data", {
       "post_template": html_post,
       "post_selector": post_selector,
+      "like_list_tpl_singular": html_like_list_singular,
+      "like_list_tpl_plural": html_like_list_plural,
+      "like_list_text_plural": like_list_text_plural,
       "crosspost_template": html_checkbox,
       "crosspost_selector": checkbox_selector,
       "submit_selector": submit_selector,
