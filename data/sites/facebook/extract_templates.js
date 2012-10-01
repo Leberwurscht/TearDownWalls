@@ -735,7 +735,7 @@ function get_post_template(handler) {
     if (!$show_all.length) {
       $dummy_comment = transform_to_template($comments.clone(), [avatar_selector]);
       $show_all = jQuery("<a>show all</a>");
-      $dummy_comment.find(avatar_selector).replaceWith($show_all);
+      $dummy_comment.find(avatar_selector).parents("a:first").replaceWith($show_all);
       $comments.before($dummy_comment);
     }
 
@@ -766,16 +766,10 @@ function get_post_template(handler) {
     }
 
     if (!$like_list.length) {
+      $dummy_comment = transform_to_template($comments.clone(), [avatar_selector]);
       $like_list = jQuery('<div>');
-
-      if ($date.parents("a:first").length) {
-        $date.parents("a:first").after(" ");
-        $date.parents("a:first").after($like_list);
-      }
-      else {
-        $date.after(" ");
-        $date.after($like_list);
-      }
+      $dummy_comment.find(avatar_selector).parents("a:first").replaceWith($like_list);
+      $comments.before($dummy_comment);
     }
 
     // set markers
