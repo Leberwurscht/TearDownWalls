@@ -13,7 +13,9 @@ first version
 * get_subitems should also return all likes UNTESTED
 * fix sub_items_complete in get_items UNTESTED
 * show_all not working any more DONE
+* click onto like symbol should also add a like
 * like should appear immediately
+* image embedded in data uri is not shown
 * avoid multiple likes?
 * change mouse pointer when crosspost image is hovered
 * dialog: hide field if logged in user is equal
@@ -27,6 +29,7 @@ first version
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
 * expert mode (checkbox in configuration): display log, edit config json, queue sizes
+* perhaps: show own posts only if they have at least one comment
 
 try to port to chrome
 =====================
@@ -36,7 +39,9 @@ try to port to chrome
 next versions
 =============
 
+* hide like button when commenting and liking is not possible (for feeds)
 * crossposted posts appear twice in facebook, combine them. perhaps: try to synchronize comments?
+* chat
 * comment likes, unlike
 * reshare button
 * use favicon as avatar for feeds
