@@ -110,6 +110,61 @@ function apply_class_diff(dom, diff, reverse) {
   }
 }
 
+function add_like_list(post, likes, add) {
+  var $like_list = post.find(".TearDownWalls_like_list");
+
+  if (add) {
+    var all_likes = [];
+
+    var new_likes = likes;
+    var old_likes = post.data("likes");
+    if (!old_likes) old_likes = [];
+
+    for (var i=0; i<old_likes.length; i++) all_likes.push(old_likes[i]);
+    for (var i=0; i<new_likes.length; i++) all_likes.push(new_likes[i]);
+
+    likes = all_likes;
+  }
+
+  if (likes.length==1) {
+    var $ll = like_list_tpl_singular.clone();
+    var $item = $ll.find(".TearDownWalls_like_list_item");
+    $item.text(likes[0].author);
+
+    $like_list.replaceWith(jQuery($ll.wrap("<div>").parent().html())); // strange: $like_list.replaceWith($ll) does not work
+  }
+  else if (likes.length>1) {
+    var $ll = like_list_tpl_plural.clone();
+
+    var $item = $ll.find(".TearDownWalls_like_list_item");
+    $item.text(likes[0].author);
+
+    for (var i=1; i<likes.length-1; i++) {
+      var like = likes[i];
+
+      var $last_item = $ll.find(".TearDownWalls_like_list_item:last");
+      var $item = $last_item.clone();
+
+      $item.text(like.author);
+
+      $last_item.after($item);
+      $item.before(like_list_text_plural.separator);
+    }
+
+    var $last_item = $ll.find(".TearDownWalls_like_list_item:last");
+    var $item = $last_item.clone();
+
+    $item.text(likes[likes.length-1].author);
+
+    $last_item.after($item);
+    $item.before(like_list_text_plural.last_separator);
+
+    $like_list.replaceWith(jQuery($ll.wrap("<div>").parent().html()));
+  }
+
+  post.data("likes", likes);
+}
+
 function add_comments(post, comments, remove_existing) {
   // get existing comments
   var existing_comments = post.find(".TearDownWalls_comment");
@@ -163,43 +218,7 @@ function add_comments(post, comments, remove_existing) {
   });
 
   // add like list
-  var $like_list = post.find(".TearDownWalls_like_list");
-
-  if (likes.length==1) {
-    var $ll = like_list_tpl_singular.clone();
-    var $item = $ll.find(".TearDownWalls_like_list_item");
-    $item.text(likes[0].author);
-
-    $like_list.replaceWith(jQuery($ll.wrap("<div>").parent().html())); // strange: $like_list.replaceWith($ll) does not work
-  }
-  else if (likes.length>1) {
-    var $ll = like_list_tpl_plural.clone();
-
-    var $item = $ll.find(".TearDownWalls_like_list_item");
-    $item.text(likes[0].author);
-
-    for (var i=1; i<likes.length-1; i++) {
-      var like = likes[i];
-
-      var $last_item = $ll.find(".TearDownWalls_like_list_item:last");
-      var $item = $last_item.clone();
-
-      $item.text(like.author);
-
-      $last_item.after($item);
-      $item.before(like_list_text_plural.separator);
-    }
-
-    var $last_item = $ll.find(".TearDownWalls_like_list_item:last");
-    var $item = $last_item.clone();
-
-    $item.text(likes[likes.length-1].author);
-
-    $last_item.after($item);
-    $item.before(like_list_text_plural.last_separator);
-
-    $like_list.replaceWith(jQuery($ll.wrap("<div>").parent().html()));
-  }
+  add_like_list(post, likes);
 
   // adjust width of images (workaround - max-width: 100% does not seem to work)
   post.find(".TearDownWalls_comment_content img").css("max-width", (jQuery(post_selector).width()*.8 - 65)+"px");
@@ -289,11 +308,17 @@ function inject_posts(posts, remove_existing) {
     });
 
     // add callback for like button - TODO: hide if commenting not possible
-    injected_post.find(".TearDownWalls_like_button").click(function(event) {
+    like_callback = function(event) {
       event.preventDefault();
 
       self.port.emit("like-item", post.id, [post.feed]);
-    });
+
+      var author = user.name;
+      button = jQuery(this);
+      add_like_list(button.parents(".TearDownWalls_post"), [{"author":author}], true);
+    };
+
+    injected_post.find(".TearDownWalls_like_button").click(like_callback);
 
     // jquery.autosize.js for growing textareas
     injected_post.find(".TearDownWalls_comment_field").autosize();

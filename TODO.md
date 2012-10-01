@@ -13,8 +13,8 @@ first version
 * get_subitems should also return all likes UNTESTED
 * fix sub_items_complete in get_items UNTESTED
 * show_all not working any more DONE
+* like should appear immediately DONE
 * click onto like symbol should also add a like
-* like should appear immediately
 * image embedded in data uri is not shown
 * avoid multiple likes?
 * change mouse pointer when crosspost image is hovered
