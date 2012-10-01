@@ -708,7 +708,7 @@ function get_post_template(handler) {
     if (!$comment_content.length) rating -= 1;
 
     if (!$like_button.length) rating -= 1;
-    if (!$like_list.length) rating -= 1;
+    if (!$like_list.length) rating -= 0.9;
 
     /* not necessary to check comment field */
     /* do not care about comment image */
