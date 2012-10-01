@@ -10,6 +10,8 @@ first version
 * max-width:100% for images PARTIALLY DONE
 * exception when opening dialog DONE
 * display like lists DONE
+* get_subitems should also return all likes UNTESTED
+* fix sub_items_complete in get_items UNTESTED
 * show_all not working any more DONE
 * like should appear immediately
 * avoid multiple likes?
