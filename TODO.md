@@ -10,7 +10,7 @@ first version
 * max-width:100% for images PARTIALLY DONE
 * exception when opening dialog DONE
 * display like lists DONE
-* show_all not working
+* show_all not working any more DONE
 * like should appear immediately
 * avoid multiple likes?
 * change mouse pointer when crosspost image is hovered

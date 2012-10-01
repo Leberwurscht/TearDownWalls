@@ -285,14 +285,14 @@ function inject_posts(posts, remove_existing) {
     injected_post.find(".TearDownWalls_show_all").click(function(event) {
       event.preventDefault();
 
-      self.port.emit("request-comments", post.connection, post.id);
+      self.port.emit("request-comments", post.feed, post.id);
     });
 
     // add callback for like button - TODO: hide if commenting not possible
     injected_post.find(".TearDownWalls_like_button").click(function(event) {
       event.preventDefault();
 
-      self.port.emit("like-item", post.id, [post.connection]);
+      self.port.emit("like-item", post.id, [post.feed]);
     });
 
     // jquery.autosize.js for growing textareas
@@ -359,7 +359,7 @@ function inject_posts(posts, remove_existing) {
     }
 
     // append important data to the post
-    injected_post.data("TearDownWalls_connection", post.connection);
+    injected_post.data("TearDownWalls_connection", post.feed);
     injected_post.data("TearDownWalls_id", post.id);
     injected_post.data("TearDownWalls_date", post.date);
 
@@ -433,7 +433,7 @@ self.port.on("transmit-posts", function(posts) {
 self.port.on("transmit-comments", function(comments) {
   // get the post
   var post = jQuery(".TearDownWalls_post").filter(function() {
-    if ($(this).data("TearDownWalls_connection")!=comments["connection"]) return false;
+    if ($(this).data("TearDownWalls_connection")!=comments["feed"]) return false;
     if ($(this).data("TearDownWalls_id")!=comments["id"]) return false;
     return true;
   });
