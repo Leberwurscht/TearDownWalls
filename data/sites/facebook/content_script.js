@@ -317,8 +317,8 @@ function inject_posts(posts, remove_existing) {
       button = jQuery(this);
       add_like_list(button.parents(".TearDownWalls_post"), [{"author":author}], true);
     };
-
     injected_post.find(".TearDownWalls_like_button").click(like_callback);
+    injected_post.find(".TearDownWalls_like_symbol").click(like_callback);
 
     // jquery.autosize.js for growing textareas
     injected_post.find(".TearDownWalls_comment_field").autosize();

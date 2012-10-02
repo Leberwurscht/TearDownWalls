@@ -186,15 +186,12 @@ function get_like_button($post) {
   return $like_button;
 }
 
-function get_like_list($post, date_selector) {
-  $like_button = get_like_button($post);
-
-  // find like list - first try to find like symbol (TODO: or browse likes link)
+function get_like_symbol($parent, $like_button) {
   var like_title = $like_button.attr("title");
   var $like_symbol = jQuery([]);
-  $like_symbol = $post.find(".uiUfiLikeIcon"); // try class
+  $like_symbol = $parent.find(".uiUfiLikeIcon"); // try class
   if (!$like_symbol.length && like_title) { // try to get like symbol by title
-    $like_symbol = $post.find('[title="'+like_title+'"]').not($like_button);
+    $like_symbol = $parent.find('[title="'+like_title+'"]').not($like_button);
 
     if ($like_symbol.length>1) {
       self.port.emit("log", "more than one element has same title as like button", 0);
@@ -205,7 +202,7 @@ function get_like_list($post, date_selector) {
     }
   }
   if (!$like_symbol.length) { // try to get like symbol by onclick
-    var $like_symbol = $post.find("*").filter(function() {
+    var $like_symbol = $parent.find("*").filter(function() {
       var onclick = jQuery(this).attr("onclick");
       if (!onclick) return false;
       return onclick.indexOf("form.like.click") != -1;
@@ -219,6 +216,15 @@ function get_like_list($post, date_selector) {
       self.port.emit("log", "used onclick method to get like symbol", 0);
     }
   }
+
+  return $like_symbol;
+}
+
+function get_like_list($post, date_selector) {
+  $like_button = get_like_button($post);
+
+  // find like list - first try to find like symbol (TODO: or browse likes link)
+  $like_symbol = get_like_symbol($post, $like_button);
 
   // get at least one link that belongs to the like symbol (and not to a comment or to the post)
   // so we get the like list
@@ -351,6 +357,10 @@ function get_post_template(handler) {
 
       $a.addClass("TearDownWalls_like_list_item");
 
+      var $like_button = get_like_button($this);
+      var $symbol = get_like_symbol($ll, $like_button);
+      $symbol.addClass("TearDownWalls_like_symbol");
+
       $like_list_tpl_singular = $ll;
     }
     else if (like_count>1 && $collapsed.length && !$like_list_tpl_plural) { // plural
@@ -367,6 +377,10 @@ function get_post_template(handler) {
 
       var $first = $a.first();
       $first.addClass("TearDownWalls_like_list_item");
+
+      var $like_button = get_like_button($this);
+      var $symbol = get_like_symbol($ll, $like_button);
+      $symbol.addClass("TearDownWalls_like_symbol");
 
       // get separator
       var $content = $first.parent().contents();
