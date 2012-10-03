@@ -106,9 +106,22 @@ self.port.on("request-entries", function(xml) {
     }
 
     // sanitize HTML content using Google Caja to avoid XSS attacks
+    // (Images with data URI scheme are replaced temporarily as I do not know how to make Caja accept them.
+    // They are needed for Friendica feeds.)
+    var data_uris = [];
+    var counter = 0;
+    insecure_content = insecure_content.replace(/"(data:image\/.*?)"/, function(match, url) {
+      data_uris.push(url);
+      return '"http://0.0.0.0:0/'+(counter++)+'"';
+    });
+
     var urlTransformer, nameIdClassTransformer;
     urlTransformer = nameIdClassTransformer = function(s) { return s; };
     var content = html_sanitize(insecure_content, urlTransformer, nameIdClassTransformer);
+
+    content = content.replace(/"http:\/\/0.0.0.0:0\/([0-9]+)"/, function(match, counter) {
+      return data_uris[parseInt(counter)];
+    });
 
     // parse date (ISO 8601)
     var date_object = new Date(date_string);
