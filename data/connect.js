@@ -26,4 +26,19 @@ self.port.on("query-account", function(type, target, title, accounts) {
     jQuery(".can-connect").hide();
     jQuery(".cannot-connect").show();
   }
+
+  jQuery("#config-accounts").click(function() {
+    self.port.emit("config-accounts");
+  });
+  jQuery("#config-connections").click(function() {
+    self.port.emit("config-connections");
+  });
+  jQuery("#expert-mode").click(function() {
+    self.port.emit("expert-mode");
+  });
+});
+
+self.port.on("set-expert", function(expert_mode) {
+  if (expert_mode) jQuery("#expert-mode").show();
+  else jQuery("#expert-mode").hide();
 });

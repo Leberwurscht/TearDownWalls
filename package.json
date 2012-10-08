@@ -6,11 +6,20 @@
     "fullName": "TearDownWalls",
     "id": "jid1-4ym7aQD6VNrR5A",
     "description": "Allows reading feeds and crossposting to other targets from proprietary social network sites",
-    "preferences":[{
-      "name": "helpDev",
-      "title": "Help development",
-      "description": "Submit important log messages to the developer",
-      "type": "bool",
-      "value": false
-    }]
+    "preferences":[
+      {
+        "name": "helpDev",
+        "title": "Help development",
+        "description": "Submit important log messages to the developer",
+        "type": "bool",
+        "value": false
+      },
+      {
+        "name": "expertMode",
+        "title": "Enable expert mode",
+        "description": "Edit plain configuration and view queue sizes and logs",
+        "type": "bool",
+        "value": false
+      }
+    ]
 }

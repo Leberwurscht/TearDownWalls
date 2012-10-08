@@ -16,6 +16,7 @@ first version
 * like should appear immediately DONE
 * click onto like symbol should also add a like DONE
 * image embedded in data uri is not shown WORKING
+* expert mode (checkbox in configuration): display log, edit config json, queue sizes DONE
 * configure accounts, configure connections
 * avoid multiple likes?
 * change mouse pointer when crosspost image is hovered
@@ -29,7 +30,6 @@ first version
 * make INJECT_AFTER configurable
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
-* expert mode (checkbox in configuration): display log, edit config json, queue sizes
 * perhaps: show own posts only if they have at least one comment
 
 try to port to chrome
