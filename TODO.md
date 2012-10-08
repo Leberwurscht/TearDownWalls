@@ -40,6 +40,7 @@ try to port to chrome
 next versions
 =============
 
+* make URLs absolute when processing feeds
 * hide like button when commenting and liking is not possible (for feeds)
 * crossposted posts appear twice in facebook, combine them. perhaps: try to synchronize comments?
 * chat
