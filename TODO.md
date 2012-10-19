@@ -17,7 +17,9 @@ first version
 * click onto like symbol should also add a like DONE
 * image embedded in data uri is not shown WORKING
 * expert mode (checkbox in configuration): display log, edit config json, queue sizes DONE
-* configure accounts, configure connections
+* configure accounts DONE
+* configure connections
+* like delivery not working
 * avoid multiple likes?
 * change mouse pointer when crosspost image is hovered
 * dialog: hide field if logged in user is equal
