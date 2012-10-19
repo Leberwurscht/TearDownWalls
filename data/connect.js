@@ -1,44 +1,38 @@
-self.port.on("query-account", function(type, target, title, accounts) {
-  if (type && target) {
-    jQuery(".can-connect").show();
+self.port.on("set-connection-target", function(target) {
+  if (target) {
     jQuery(".cannot-connect").hide();
-    if (title) {
-      jQuery("#target").text(title);
-    }
-    else {
-      jQuery("#target").text(target);
-    }
+    jQuery(".can-connect").show();
 
-    list(jQuery("#accounts"), accounts, true);
-
-    jQuery("#connect").click(function() {
-      console.log(jQuery("input[name=account]:checked").length);
-      var identifier = jQuery("input[name=account]:checked").val();
-      var site = jQuery("input[name=account]:checked").data("site");
-      var avatar = jQuery("input[name=account]:checked").data("avatar");
-      var name = jQuery("input[name=account]:checked").data("name");
-      var url = jQuery("input[name=account]:checked").data("url");
-
-      self.port.emit("account-selected", type, target, site, identifier, url, avatar, name);
-    });
+    var $target = jQuery("#target");
+    $target.text(target.title);
+    $target.data("info", target);
   }
   else {
     jQuery(".can-connect").hide();
     jQuery(".cannot-connect").show();
   }
+});
 
-  jQuery("#config-accounts").click(function() {
-    self.port.emit("config-accounts");
+jQuery(document).ready(function() {
+  jQuery("#configure_accounts").click(function() {
+    self.port.emit("configure-accounts");
   });
-  jQuery("#config-connections").click(function() {
-    self.port.emit("config-connections");
+  jQuery("#configure_connections").click(function() {
+    self.port.emit("configure-connections");
   });
-  jQuery("#expert-mode").click(function() {
+  jQuery("#expert_mode").click(function() {
     self.port.emit("expert-mode");
+  });
+
+  jQuery("#connect").click(function() {
+    var connection = jQuery("#target").data("info");
+    var account = jQuery("input[type=radio][name=account]:checked").parents(".account:first").data("info");
+
+    self.port.emit("connect", account, connection);
   });
 });
 
 self.port.on("set-expert", function(expert_mode) {
-  if (expert_mode) jQuery("#expert-mode").show();
-  else jQuery("#expert-mode").hide();
+  if (expert_mode) jQuery("#expert_mode").show();
+  else jQuery("#expert_mode").hide();
 });

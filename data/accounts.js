@@ -1,110 +1,102 @@
-function list($sites, sites, select) { // sites = [account1, account2, ...], account = {identifier: ..., avatar: ..., name: ..., url: ...}
-  $sites.empty();
+var account_html = ''+
+'<div class="account">'+
+'  <input type="radio" name="account" class="selector"> '+
+'  <img class="avatar">'+
+'  <span class="name"></span>'+
+'  <span class="delete">[<a>X</a>]</span>'+
+'</div>';
 
-  for (var i=0; i<sites.length; i++) {
-    var site = sites[i];
-    var $site = jQuery("<div>");
-    $site.attr("id", "site_"+site.name);
+var logged_in_html = ''+
+'<div class="currently-logged-in account">'+
+'  <input type="radio" name="account" class="selector">'+
+'  <img class="avatar">'+
+'  <span class="name"></span>'+
+'  <span class="add">[<a>add</a>]</span>'+
+'  <button class="login">relogin</button>'+
+'</div>';
 
-    var $caption = jQuery("<p>");
-    $caption.text(site.name+":");
-    $site.append($caption);
+function set_account($site, site, identifier, account, $account) {
+  /* adds an item to the account list of a certain site, or updates the item if already exists */
 
-    var $accounts = jQuery('<div style="padding-left: 1.5em;">');
+  if (!$account || !$account.length) {
+    var $account = jQuery(account_html);
+    $site.find(".account:last").before($account);
 
-    for (var j=0; j<site.accounts.length; j++) {
-      var account = site.accounts[i];
-      var $account = jQuery('<div style="clear: both;">');
-
-      if (select) {
-        var $radio = jQuery('<input type="radio" name="account">');
-        $radio.val(account.identifier);
-        $radio.data("site", site);
-        $radio.data("avatar", account.avatar);
-        $radio.data("name", account.name);
-        $radio.data("url", account.url);
-        $account.append($radio);
-      }
-
-      var $avatar = jQuery('<img style="height: 1.5em;">');
-      $avatar.attr("src", account.avatar);
-      $account.append($avatar);
-
-      $account.append(" ");
-
-      var $caption = jQuery("<span>");
-      $caption.text(account.name);
-      $account.append($caption);
-
-      if (!select) {
-        $account.append(" ");
-
-        var $delete = jQuery("<a>");
-        $delete.text("X");
-        $account.append(" [");
-        $account.append($delete);
-        $account.append("]");
-
-        $delete.click(function() {
-          self.port.emit("delete-account", account.identifier);
-        });
-      }
-
-      $accounts.append($account);
-    }
-
-    // log in...
-    var $account = jQuery('<div class="currently-logged-in">');
-
-    if (select) {
-      var $radio = jQuery('<input type="radio" name="account" value="" class="radio" style="display: none;">');
-      $account.append($radio);
-    }
-
-    var $avatar = jQuery('<img class="avatar" style="height: 1.5em; display: none;">');
-    $account.append($avatar);
-
-    $account.append(" ");
-
-    var $caption = jQuery('<span class="name" style="display:none;">');
-    $account.append($caption);
-
-    $account.append(" ");
-
-    var $login = jQuery('<button class="login">');
-    $login.text("login");
-    $login.click(function() {
-      console.log(site.name);
-      self.port.emit("request-login", site.name);
+    $account.find(".delete a").click(function() { // delete callback
+      jQuery(this).parents(".account:first").remove();
+      self.port.emit("delete-account", site, identifier);
     });
-    $account.append($login);
-
-    $accounts.append($account);
-
-    //
-    $site.append($accounts);
-
-    $sites.append($site);
   }
 
-  $sites.find("input[type=radio]:visible:first").attr("checked", "checked");
+  $account.find(".selector").val(identifier);
+  $account.find(".avatar").attr("src", account.avatar);
+  $account.find(".name").text(account.name);
+
+  $account.data("info", {
+    site: site,
+    identifier: identifier,
+    url: account.url,
+    avatar: account.avatar,
+    name: account.name
+  });
 }
 
-self.port.on("currently-logged-in", function(site, account) {
-  if (!jQuery(".radio:visible").length) {
-    jQuery("#site_"+site).find(".radio").attr("checked","checked");
+self.port.on("update-accounts", function(accounts, rebuild) {
+  for (var site in accounts) { if (!accounts.hasOwnProperty(site)) continue;
+    var $site = jQuery("#site_"+site);
+    if (!$site.length || rebuild) {
+      $site.remove();
+
+      $site = jQuery('<div id="site_'+site+'" class="site">');
+      jQuery("#accounts").append($site);
+
+      var $caption = jQuery('<div class="caption">');
+      $caption.text(site);
+      $site.append($caption);
+
+      var $logged_in = jQuery('<div class="currently-logged-in account">').text("wait...");
+      $site.append($logged_in);
+    }
+
+    for (var identifier in accounts[site]) { if (!accounts[site].hasOwnProperty(identifier)) continue;
+      var account = accounts[site][identifier];
+
+      if (account.logged_in) { // replace placeholder or old content
+        var $account = $site.find(".currently-logged-in");
+        $account.empty();
+
+        if (account.url || account.name || account.avatar) {
+          var $replacement = jQuery(logged_in_html);
+          $account.replaceWith($replacement);
+          $account = $replacement;
+
+          $account.find(".add a").click(function() {
+            set_account($site, site, identifier, account);
+            var account_info = jQuery(this).parents(".account:first").data("info");
+            self.port.emit("add-account", site, account_info);
+          });
+        }
+        else {
+          var $login = jQuery('<button class="login">').text("login");
+          $account.append($login);
+        }
+
+        $account.find(".login").click(function() {
+          self.port.emit("request-login", site);
+        });
+      }
+      else {
+        var $account = $site.find("input[type=radio][name=account]").filter(function(){
+          return jQuery(this).val()==identifier;
+        }).parents(".account:first");
+      }
+
+      set_account($site, site, identifier, account, $account);
+    }
   }
 
-  jQuery("#site_"+site).find(".radio, .avatar, .name").show();
-
-  var $radio = jQuery("#site_"+site+" .radio")
-  $radio.val(account.identifier);
-  $radio.data("site", site);
-  $radio.data("avatar", account.avatar);
-  $radio.data("name", account.name);
-  $radio.data("url", account.url);
-
-  jQuery("#site_"+site+" .avatar").attr("src", account.avatar);
-  jQuery("#site_"+site+" .name").text(account.name);
-  jQuery("#site_"+site+" .login").text("login as other user");
+  // select first radio button if none selected
+  if (!jQuery("input[type=radio][name=account]:checked").length) {
+    jQuery("input[type=radio][name=account]:first").attr("checked", "checked");
+  }
 });

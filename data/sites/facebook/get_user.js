@@ -1,3 +1,5 @@
+console.log("gu");
+
 function convert_to_absolute(url){ // http://james.padolsey.com/javascript/getting-a-fully-qualified-url/
   if (typeof url != "string") return url;
 
@@ -45,7 +47,5 @@ function get_user() {
 
 self.port.on("get-user", function() {
   var user = get_user();
-  if (user) {
-    self.port.emit("logged-in", user.identifier, user.url, user.avatar, user.name);
-  }
+  if (user) self.port.emit("logged-in", user);
 });
