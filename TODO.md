@@ -18,6 +18,7 @@ first version
 * image embedded in data uri is not shown WORKING
 * expert mode (checkbox in configuration): display log, edit config json, queue sizes DONE
 * configure accounts DONE
+* detect language in content script, not extract_templates, to be up to date
 * configure connections
 * like delivery not working
 * avoid multiple likes?

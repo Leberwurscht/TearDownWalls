@@ -919,17 +919,17 @@ self.port.on("start", function() {
   if ( self.options.site_data.last_extract > now - 3600*24*5 ) return;
 
   // extract language, needed for localization of jquery.timeago.js
-  var lang = jQuery("html").attr("lang").toLowerCase();
+  var lang = jQuery("html").attr("lang");
 
   // get localization of jquery.timeago.js - this is an ugly workaround for the fact that we cannot include files from content scripts.
   // Start a page worker with the right localization and a script that saves the localization using set-data.
-  self.port.emit("start-worker", {
+  if (lang) self.port.emit("start-worker", {
       "url": "about:blank",
       "when": "end",
       "files": [
         "../../lib/jquery.js",
         "../../lib/jquery.timeago.js",
-        "../../lib/jquery.timeago.locales/jquery.timeago."+lang+".js",
+        "../../lib/jquery.timeago.locales/jquery.timeago."+lang.toLowerCase()+".js",
         "../../get_timeago_locale.js"
       ]
   });
