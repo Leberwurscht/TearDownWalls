@@ -25,6 +25,11 @@ function set_account($site, site, identifier, account, $account) {
     $account.find(".delete a").click(function() { // delete callback
       jQuery(this).parents(".account:first").remove();
       self.port.emit("delete-account", site, identifier);
+
+      var $logged_in = $site.find(".currently-logged-in");
+      if ($logged_in.find(".selector").val()==identifier) {
+        $logged_in.removeClass("greyed-out");
+      }
     });
   }
 
@@ -74,6 +79,8 @@ self.port.on("update-accounts", function(accounts, rebuild) {
             set_account($site, site, identifier, account);
             var account_info = jQuery(this).parents(".account:first").data("info");
             self.port.emit("add-account", site, account_info);
+
+            $site.find(".currently-logged-in").addClass("greyed-out");
           });
         }
         else {
@@ -92,6 +99,18 @@ self.port.on("update-accounts", function(accounts, rebuild) {
       }
 
       set_account($site, site, identifier, account, $account);
+
+      // if identifer is displayed twice, grey out currently logged in
+      var multiplicity = $site.find("input[type=radio][name=account]").filter(function(){
+        return jQuery(this).val()==identifier;
+      }).length;
+
+      if (multiplicity>1) {
+        $site.find(".currently-logged-in").addClass("greyed-out");
+      }
+      else {
+        $site.find(".currently-logged-in").removeClass("greyed-out");
+      }
     }
   }
 
