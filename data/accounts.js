@@ -75,22 +75,26 @@ self.port.on("update-accounts", function(accounts, rebuild) {
           $account.replaceWith($replacement);
           $account = $replacement;
 
-          $account.find(".add a").click(function() {
-            set_account($site, site, identifier, account);
-            var account_info = jQuery(this).parents(".account:first").data("info");
-            self.port.emit("add-account", site, account_info);
+          (function(site, identifier, account){
+            $account.find(".add a").click(function() {
+              set_account($site, site, identifier, account);
+              var account_info = jQuery(this).parents(".account:first").data("info");
+              self.port.emit("add-account", site, account_info);
 
-            $site.find(".currently-logged-in").addClass("greyed-out");
-          });
+              $site.find(".currently-logged-in").addClass("greyed-out");
+            });
+          })(site, identifier, account);
         }
         else {
           var $login = jQuery('<button class="login">').text("login");
           $account.append($login);
         }
 
-        $account.find(".login").click(function() {
-          self.port.emit("request-login", site);
-        });
+        (function(site){
+          $account.find(".login").click(function() {
+            self.port.emit("request-login", site);
+          });
+        })(site);
       }
       else {
         var $account = $site.find("input[type=radio][name=account]").filter(function(){
