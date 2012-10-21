@@ -47,5 +47,5 @@ function get_user() {
 
 self.port.on("get-user", function() {
   var user = get_user();
-  if (user) self.port.emit("logged-in", user);
+  self.port.emit("logged-in", user);
 });
