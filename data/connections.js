@@ -5,17 +5,16 @@ self.port.on("set-connections", function(connections) {
   for (var i=0; i<connections.length; i++) {
     var connection = connections[i];
 
-    var $connection = jQuery('<div class="connection"><span class="name"></span> [<a class="delete">X</a>] <button class="export">export</button> used for: <div class="accounts"></div></div>');
+    var $connection = jQuery('<div class="connection"><span class="name"></span> [<a class="delete">X</a>] (<a class="export">export</a>) used for: <div class="accounts"></div></div>');
     $connection.find(".name").text(connection.name);
+
+    var datauri = "data:application/force-download;base64," + window.btoa(connection.export_json);
+    $connection.find(".export").attr("href", datauri);
 
     (function(id){
       $connection.find(".delete").click(function() {
         self.port.emit("delete-connection", id);
         jQuery(this).parents(".connection:first").remove();
-      });
-
-      $connection.find(".export").click(function() {
-        self.port.emit("export", id);
       });
     })(connection.id);
 
@@ -40,11 +39,33 @@ self.port.on("set-connections", function(connections) {
       $account.find(".account-name").text(account.name);
       $account.find(".site").text(account.site);
     }
+
+    if (!$connection.find(".accounts *").length) {
+      $connection.find(".accounts").append(" - no accounts -");
+    }
   }
 });
 
 jQuery(document).ready(function() {
-  jQuery("#import").click(function() {
-    self.port.emit("import");
+  jQuery("#import").change(function() {
+    if (!this.files.length) return;
+
+    var file = this.files.item(0);
+
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var json = ev.target.result;
+      try {
+        var config = JSON.parse(json);
+      }
+      catch (e) {
+        console.log("parsing JSON failed");
+        jQuery("#import").css("border", "5px solid #f00");
+        var config;
+      }
+
+      self.port.emit("import", config);
+    };
+    reader.readAsText(file);
   });
 });

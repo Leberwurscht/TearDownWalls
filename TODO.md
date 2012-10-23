@@ -18,8 +18,8 @@ first version
 * image embedded in data uri is not shown WORKING
 * expert mode (checkbox in configuration): display log, edit config json, queue sizes DONE
 * configure accounts DONE
-* detect language in content script, not extract_templates, to be up to date
-* configure connections
+* configure connections DONE
+* light addon should allow export of connection file
 * like delivery not working
 * avoid multiple likes?
 * change mouse pointer when crosspost image is hovered
@@ -34,6 +34,7 @@ first version
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
 * perhaps: show own posts only if they have at least one comment
+* detect language in content script, not extract_templates, to be up to date?
 
 try to port to chrome
 =====================
@@ -43,6 +44,10 @@ try to port to chrome
 next versions
 =============
 
+* localization
+* perhaps use indexedDB instead of sqlite
+* messages
+* facebook users should be able to get the feed for a person
 * make URLs absolute when processing feeds
 * hide like button when commenting and liking is not possible (for feeds)
 * crossposted posts appear twice in facebook, combine them. perhaps: try to synchronize comments?

@@ -36,6 +36,7 @@ storage.connections = {
 	next_id: 1,
 	0:{
 		name: ...
+		poll_interval: ...
 		target: {...}
 		feed: {...}
 	}
