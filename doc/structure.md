@@ -38,6 +38,7 @@ storage.connections = {
 		name: ...
 		poll_interval: ...
 		target: {...}
+		like_target: {...}
 		feed: {...}
 	}
 }
