@@ -21,7 +21,7 @@ first version
 * configure connections DONE
 * light addon should allow export of connection file DONE
 * like delivery not working, use like_target for export/import, register successful likes DONE
-* avoid multiple likes
+* avoid multiple likes DONE
 * change mouse pointer when crosspost image is hovered
 * dialog: hide field if logged in user is equal
 * check if item_store can introduce malformed html
