@@ -19,8 +19,8 @@ first version
 * expert mode (checkbox in configuration): display log, edit config json, queue sizes DONE
 * configure accounts DONE
 * configure connections DONE
-* light addon should allow export of connection file
-* like delivery not working
+* light addon should allow export of connection file DONE
+* like delivery not working, use like_target for export/import
 * avoid multiple likes?
 * change mouse pointer when crosspost image is hovered
 * dialog: hide field if logged in user is equal
