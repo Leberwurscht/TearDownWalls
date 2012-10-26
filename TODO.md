@@ -21,16 +21,16 @@ first version
 * configure connections DONE
 * light addon should allow export of connection file DONE
 * like delivery not working, use like_target for export/import, register successful likes DONE
+* dialog: hide field if logged in user is equal DONE
 * avoid multiple likes DONE
+* make inject_after configurable DONE
 * change mouse pointer when crosspost image is hovered
-* dialog: hide field if logged in user is equal
 * check if item_store can introduce malformed html
 * save everything in database
 * fix avatar class
 * crossposting also if you have a friendica account
 * cleanup: remove very old posts, remove comments without parents
 * api versioning
-* make INJECT_AFTER configurable
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
 * perhaps: show own posts only if they have at least one comment

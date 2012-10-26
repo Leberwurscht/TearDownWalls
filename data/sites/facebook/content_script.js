@@ -1,4 +1,4 @@
-var INJECT_AFTER = 5.0; // TODO: make configurable
+var inject_after;
 var crossposting;
 
 var native_post_appeared = false;
@@ -243,8 +243,8 @@ function inject_posts(posts, remove_existing) {
   var post_index = 0;
   native_posts.each(function(index) {
     // whether to inject a post
-    var last_injected_index = injected_so_far*INJECT_AFTER;
-    var next_injected_index = last_injected_index + INJECT_AFTER;
+    var last_injected_index = injected_so_far*inject_after;
+    var next_injected_index = last_injected_index + inject_after;
     var next_native_index = native_so_far + 1;
     native_so_far++;
 
@@ -305,6 +305,20 @@ function inject_posts(posts, remove_existing) {
       event.preventDefault();
 
       self.port.emit("request-comments", post.feed, post.id);
+    });
+
+    // add callback for click on author: configuration of inject_after
+    injected_post.find(".TearDownWalls_author").click(function(event) {
+      event.preventDefault();
+
+      answer = window.prompt("How many facebook posts do you want between non-facebook posts?", inject_after);
+      if (answer = parseInt(answer)) {
+        inject_after = answer;
+
+        self.port.emit("set-data", {
+          "inject_after": inject_after
+        }, user.identifier);
+      }
     });
 
     // add callback for like button - TODO: hide if commenting not possible
@@ -473,7 +487,7 @@ function request_posts(max_request) {
   var all_posts = jQuery(post_selector).length;
   var native_posts = all_posts - injected_posts_so_far;
 
-  var injected_posts_wanted = Math.floor(native_posts / INJECT_AFTER);
+  var injected_posts_wanted = Math.floor(native_posts / inject_after);
   var request = injected_posts_wanted - injected_posts_so_far;
 
   // get the date of the last injected post
@@ -502,6 +516,8 @@ self.port.on("start", function() {
 
   //
   crossposting = self.options.account_data[user.identifier].crossposting;
+  inject_after = self.options.account_data[user.identifier].inject_after;
+  if (!inject_after) inject_after = 5.0;
 
   if (!jQuery(post_selector).length) return; // only if this site contains a posts section
 
