@@ -24,12 +24,12 @@ first version
 * dialog: hide field if logged in user is equal DONE
 * avoid multiple likes DONE
 * make inject_after configurable DONE
+* cleanup: remove very old posts, remove comments without parents DONE
 * change mouse pointer when crosspost image is hovered
 * check if item_store can introduce malformed html
 * save everything in database
 * fix avatar class
 * crossposting also if you have a friendica account
-* cleanup: remove very old posts, remove comments without parents
 * api versioning
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
