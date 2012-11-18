@@ -25,12 +25,13 @@ first version
 * avoid multiple likes DONE
 * make inject_after configurable DONE
 * cleanup: remove very old posts, remove comments without parents DONE
+* crossposting also if you have a friendica account DONE
+* api versioning DONE
+* create default settings after expert mode set-configuration DONE
 * change mouse pointer when crosspost image is hovered
 * check if item_store can introduce malformed html
 * save everything in database
 * fix avatar class
-* crossposting also if you have a friendica account
-* api versioning
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
 * perhaps: show own posts only if they have at least one comment
@@ -45,6 +46,7 @@ next versions
 =============
 
 * localization
+* per facebook group crosspost activation
 * perhaps use indexedDB instead of sqlite
 * messages
 * facebook users should be able to get the feed for a person
@@ -55,4 +57,5 @@ next versions
 * comment likes, unlike
 * reshare button
 * use favicon as avatar for feeds
-* order posts by time
+* order posts by toplevel post date (by last comment is too difficult if there are already posts displayed and more posts are loaded)
+	Get oldest native post, keep time order above that. Below, use old approach.
