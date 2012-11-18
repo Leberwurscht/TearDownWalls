@@ -482,7 +482,7 @@ self.port.on("transmit-comments", function(comments) {
 });
 
 function request_posts(max_request) {
-  // calculate how many post we need to inject to get POST_RATIO
+  // calculate how many post we need to inject
   var injected_posts_so_far = jQuery(".TearDownWalls_post").length;
   var all_posts = jQuery(post_selector).length;
   var native_posts = all_posts - injected_posts_so_far;

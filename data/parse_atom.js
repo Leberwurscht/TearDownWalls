@@ -1,7 +1,7 @@
 self.port.on("request-entries", function(xml) {
   // parse xml
-  parser = new DOMParser();
-  doc = parser.parseFromString(xml, "text/xml");
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(xml, "text/xml");
 
   // find feed element
   var feed;
