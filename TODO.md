@@ -34,8 +34,13 @@ first version
 * fix avatar class
 * for (i in ...) -> for (var i in ...)
 * cleanup of code
-* perhaps: show own posts only if they have at least one comment
+* perhaps: show own posts only if they have at least one comment - how to detect own posts?
 * detect language in content script, not extract_templates, to be up to date?
+* configuration page on installation, user has to specify he wants to save and extract templates (checkbox), TOS+IP warning
+* it is now possible to embed images when posting in facebook, handle them
+* execute page worker only on start-worker event, not when browser is opened (get-user is called early enough to generate a template)
+* start timeago locale extraction from get_user.js, and only if current lang != <html> lang
+* remove support for page workers in configuration.json
 
 try to port to chrome
 =====================
